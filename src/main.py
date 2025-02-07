@@ -1,6 +1,6 @@
 import sys
 import os
-
+import random
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import torch
@@ -9,45 +9,48 @@ from torch.utils.data import Dataset, DataLoader
 
 from transformers import AutoModel, AutoTokenizer
 from src.bert_output_classification_head import BertOutputClassificationHead
-from src.trainer import train
+from src.trainer import train, predict_next_log
 
 
 class LogDataset(Dataset):
     def __init__(self, file_path, tokenizer, max_length=128):
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f" Errore: Il file CSV '{file_path}' non esiste!")
+        self.data = pd.read_csv(file_path, low_memory=False)
+        print(f" Dataset caricato: {len(self.data)} righe trovate.")
 
-        self.data = pd.read_csv(file_path, nrows=1000)  # Carica solo le prime 1000 righe
         self.tokenizer = tokenizer
         self.max_length = max_length
 
-        # Scegli la colonna corretta per i label
-        label_column = "concept:name"  # Cambia se necessario
+        #  Creiamo una colonna "next_log" con il valore della riga successiva
+        self.data["next_log"] = self.data["activity"].shift(-1)  # Modificato per usare "activity"
+        self.data.dropna(subset=["next_log"], inplace=True)  # Evita di cancellare tutto
+        print(f" Dopo il dropna(), il dataset ha {len(self.data)} righe.")
 
-        if label_column not in self.data.columns:
-            raise ValueError(f" Errore: La colonna '{label_column}' non esiste nel CSV!")
+        print(f" Dopo il dropna(), il dataset ha {len(self.data)} righe.")
 
-        # Creiamo una mappa che assegna numeri alle classi
-        self.label_map = {label: idx for idx, label in enumerate(sorted(self.data[label_column].dropna().unique()))}
+        #  Mappa i log a indici numerici
+        self.label_map = {label: idx for idx, label in enumerate(sorted(self.data["activity"].unique()))}
+        self.data["label"] = self.data["activity"].map(self.label_map)
 
-        # Applichiamo la mappatura ai dati
-        self.data["label"] = self.data[label_column].map(self.label_map)
+        #  Controllo se sono state trovate classi
+        if len(self.label_map) == 0:
+            raise ValueError(
+                " Errore: Nessuna classe trovata nel dataset! La colonna 'concept:name' potrebbe essere vuota.")
 
-        # Definiamo il numero totale di classi
+        print(f" Classi trovate: {self.label_map}")
+
+        self.data["next_label"] = self.data["next_log"].map(self.label_map)  # Mappa anche il log successivo
+
         self.num_classes = len(self.label_map)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        log_entry = str(self.data.iloc[idx]["activity"])  # Testo del log
+        log_entry = str(self.data.iloc[idx]["activity"])
+        next_log = str(self.data.iloc[idx]["next_log"])  # Log successivo
+        label = int(self.data.iloc[idx]["label"])
+        next_label = int(self.data.iloc[idx]["next_label"])
 
-        label = self.data.iloc[idx]["label"]
-        if pd.isna(label):  # Controlla i NaN nei label
-            raise ValueError(f" Errore: Label NaN alla riga {idx} del CSV!")
-
-        label = int(label)  # Converte il label in intero
-        # Tokenizza il log con BERT
         inputs = self.tokenizer(
             log_entry,
             return_tensors="pt",
@@ -59,14 +62,14 @@ class LogDataset(Dataset):
         return {
             "input_ids": inputs["input_ids"].squeeze(0),
             "attention_mask": inputs["attention_mask"].squeeze(0),
-            "label": torch.tensor(label, dtype=torch.long),  # Ora è un numero intero
+            "label": torch.tensor(label, dtype=torch.long),
+            "next_label": torch.tensor(next_label, dtype=torch.long),  # Il log successivo come etichetta
         }
-
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"🔹 Device usato per il training: {device}")
+    print(f" Device usato per il training: {device}")
     learning_rate = 1e-5
     epochs = 3
 
@@ -75,23 +78,55 @@ if __name__ == "__main__":
     model = AutoModel.from_pretrained(model_name)
 
     dataset_path = "dataset/BPIC15_1.csv"
+    #  Controllo se il file CSV esiste
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste! Controlla il percorso.")
+
+    #  Controllo se il CSV ha dati
+    df_test = pd.read_csv(dataset_path, nrows=5)  # Leggiamo solo 5 righe per testare
+    print("Anteprima del dataset:", df_test.head())
+
+    # 🔹 Controllo se la colonna "activity" esiste
+    if "activity" not in df_test.columns:
+        raise ValueError("Errore: La colonna 'activity' non esiste nel dataset! Controlla il file CSV.")
 
     # Creiamo il dataset PRIMA di definire output_size!
-    train_dataset = LogDataset(dataset_path, tokenizer, max_length=128)
+    # Usa solo una parte del dataset per il test
+    df_full = pd.read_csv(dataset_path, low_memory=False)
+    df_sample = df_full.sample(n=2000, random_state=42)  # Usa solo 2000 righe invece di tutto il dataset
+    df_sample.to_csv("dataset_sample.csv", index=False)  # Salva il subset come nuovo CSV
+
+    train_dataset = LogDataset("dataset_sample.csv", tokenizer, max_length=128)
+
+    if len(train_dataset) == 0:
+        raise ValueError("Errore: Il dataset è vuoto! Controlla il file CSV.")
 
     # Definiamo il numero corretto di classi
-    output_size = train_dataset.num_classes  # Ora funziona!
+    output_size = train_dataset.num_classes
     print(f" Numero di classi: {output_size}")
     print(f" Classi trovate: {train_dataset.label_map}")
 
+    #Controlla se il dataset è vuoto PRIMA di creare il modello!
+    if output_size == 0:
+        raise ValueError("Errore: Nessuna classe trovata nel dataset!")
+
     # Aggiunge la testa di classificazione (Linear Layer)
     model = BertOutputClassificationHead(model, output_size).to(device)
-    import os
 
     if os.path.exists("modello_addestrato.pth"):
-        model.load_state_dict(torch.load("modello_addestrato.pth"))
-        model.eval()  # Imposta il modello in modalità inferenza
-        print("Modello pre-addestrato caricato con successo!")
+        try:
+            saved_model_state = torch.load("modello_addestrato.pth")
+            saved_output_size = saved_model_state["output_layer.weight"].shape[0]  # Numero di classi salvate
+
+            if saved_output_size != output_size:
+                print(f"Vecchio modello eliminato (output_size {saved_output_size} ≠ {output_size}). Sarà riaddestrato da zero.")
+                os.remove("modello_addestrato.pth")  # Elimina il vecchio modello
+            else:
+                print("Modello salvato compatibile. Procedo senza riaddestramento.")
+                model.load_state_dict(saved_model_state)  # Carica il modello solo se è compatibile
+        except Exception as e:
+            print(f"Errore nel caricamento del modello salvato: {e}. Lo elimino e riaddestro.")
+            os.remove("modello_addestrato.pth")
     else:
         print("Nessun modello salvato trovato. Il training partirà da zero.")
 
@@ -107,6 +142,15 @@ if __name__ == "__main__":
     if not os.path.exists("modello_addestrato.pth"):
         model = train(model, train_loader, test_loader, optimizer, epochs, criterion, device)
         torch.save(model.state_dict(), "modello_addestrato.pth")
-        print("Modello salvato con successo!")
+        print("✅ Modello salvato con successo!")
     else:
-        print("Modello già addestrato. Salto il training.")
+        print("✅ Modello già addestrato. Salto il training.")
+
+    # TEST: Predizione del prossimo log con Particle Filtering (SEMPRE ESEGUITA)
+    model.eval()  # Mette il modello in modalità inferenza
+    current_log = random.choice(train_dataset.data["activity"].tolist())
+
+    predicted_next, probabilities = predict_next_log(model, tokenizer, current_log, train_dataset.label_map, device)
+
+    print(f"Log attuale: {current_log}")
+    print(f"Log successivo predetto: {predicted_next}")

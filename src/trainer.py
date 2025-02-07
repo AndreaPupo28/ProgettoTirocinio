@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 def train(model, train_data_loader, test_data_loader, optimizer, epochs, criterion, device):
     model.train()  # Imposta il modello in modalità training
@@ -32,3 +33,35 @@ def train(model, train_data_loader, test_data_loader, optimizer, epochs, criteri
         print(f" Epoch {epoch + 1}/{epochs} completato - Loss media: {avg_loss:.4f}")
 
     return model
+
+import numpy as np
+
+def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100):
+    model.eval()  # Imposta il modello in modalità valutazione
+    with torch.no_grad():
+        inputs = tokenizer(
+            current_log,
+            return_tensors="pt",
+            max_length=128,
+            padding="max_length",
+            truncation=True
+        ).to(device)
+
+        logits = model(inputs["input_ids"], inputs["attention_mask"])
+        probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy().flatten()
+
+    #Stampa tutti i possibili log successivi con le probabilità
+    sorted_indices = np.argsort(probs)[::-1]  # Ordina le probabilità in ordine decrescente
+    print("\n Possibili log successivi con probabilità:")
+    for idx in sorted_indices[:10]:  # Mostra i primi 10 log più probabili
+        log_name = list(label_map.keys())[idx]
+        log_prob = probs[idx]
+        print(f"  - {log_name}: {log_prob:.4f}")
+
+    #Usa il Particle Filtering per determinare il log più probabile
+    particles = np.random.choice(list(label_map.keys()), size=num_particles, p=probs)
+    unique, counts = np.unique(particles, return_counts=True)
+    most_likely = unique[np.argmax(counts)]
+
+    return most_likely, probs
+
