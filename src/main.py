@@ -142,9 +142,9 @@ if __name__ == "__main__":
     if not os.path.exists("modello_addestrato.pth"):
         model = train(model, train_loader, test_loader, optimizer, epochs, criterion, device)
         torch.save(model.state_dict(), "modello_addestrato.pth")
-        print("✅ Modello salvato con successo!")
+        print("Modello salvato con successo!")
     else:
-        print("✅ Modello già addestrato. Salto il training.")
+        print("Modello già addestrato. Salto il training.")
 
     # TEST: Predizione del prossimo log con Particle Filtering (SEMPRE ESEGUITA)
     model.eval()  # Mette il modello in modalità inferenza
