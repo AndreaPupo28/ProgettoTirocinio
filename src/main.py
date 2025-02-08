@@ -8,7 +8,7 @@ import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 
 from transformers import AutoModel, AutoTokenizer
-from src.bert_output_classification_head import BertOutputClassificationHead
+from src.bert_output_classification_head import BertClassifier
 from src.trainer import train, predict_next_log
 
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         raise ValueError("Errore: Nessuna classe trovata nel dataset!")
 
     # Aggiunge la testa di classificazione (Linear Layer)
-    model = BertOutputClassificationHead(model, output_size).to(device)
+    model = BertClassifier(model, output_size).to(device)
 
     if os.path.exists("modello_addestrato.pth"):
         try:
