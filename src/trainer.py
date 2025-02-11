@@ -1,8 +1,10 @@
 import torch
 import numpy as np
 
-def train(model, train_data_loader, test_data_loader, optimizer, epochs, criterion, device):
-    model.train()  # Imposta il modello in modalità training
+def train(model, train_data_loader, test_data_loader, optimizer, epochs, criterion, device, patience=3):
+    model.train()
+    best_loss = float("inf")
+    patience_counter = 0  # Contatore per Early Stopping
 
     for epoch in range(epochs):
         total_loss = 0
@@ -11,28 +13,35 @@ def train(model, train_data_loader, test_data_loader, optimizer, epochs, criteri
             attention_mask = batch["attention_mask"].to(device)
             labels = batch["label"].to(device)
 
-            optimizer.zero_grad()  # Reset del gradiente
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)  # Passa l'input al modello
-
-            # Assicuriamoci che gli output siano logits per CrossEntropyLoss
+            optimizer.zero_grad()
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
             if hasattr(outputs, "logits"):
                 outputs = outputs.logits
 
-            loss = criterion(outputs, labels)  # Calcola la perdita
-            loss.backward()  # Backpropagation
-            optimizer.step()  # Aggiorna i pesi
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
             total_loss += loss.item()
 
-            #  Mostra il progresso ogni 10 batch
             if batch_idx % 10 == 0:
-                print(
-                    f"Epoch {epoch + 1}/{epochs}, Batch {batch_idx}/{len(train_data_loader)}, Loss: {loss.item():.4f}")
+                print(f"Epoch {epoch + 1}/{epochs}, Batch {batch_idx}/{len(train_data_loader)}, Loss: {loss.item():.4f}")
 
         avg_loss = total_loss / len(train_data_loader)
-        print(f" Epoch {epoch + 1}/{epochs} completato - Loss media: {avg_loss:.4f}")
+        print(f"Epoch {epoch + 1}/{epochs} completato - Loss media: {avg_loss:.4f}")
+
+        # Early Stopping: se la loss non migliora per "patience" epoche, ferma il training
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            patience_counter = 0  # Reset del contatore
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print("Early stopping attivato: nessun miglioramento della loss per", patience, "epoche consecutive.")
+                break  # Ferma il training
 
     return model
+
 
 import numpy as np
 
@@ -64,4 +73,3 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
     most_likely = unique[np.argmax(counts)]
 
     return most_likely, probs
-
