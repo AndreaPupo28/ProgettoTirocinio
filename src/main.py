@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # Determina il percorso corretto in base all'ambiente (PC o Kaggle)
     local_dataset_path = r"C:\Users\Utente\OneDrive\Desktop\Università\Tirocinio\Progetto\dataset\BPIC15_1.csv"
-    kaggle_dataset_path = "/kaggle/input/tuo-dataset/BPIC15_1.csv"  # Modifica con il nome corretto del dataset su Kaggle
+    kaggle_dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"  # Modifica con il nome corretto del dataset su Kaggle
 
     if os.path.exists(local_dataset_path):
         dataset_path = local_dataset_path
