@@ -77,18 +77,20 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
     model = AutoModel.from_pretrained(model_name)
 
-    # Determina il percorso corretto in base all'ambiente (PC o Kaggle)
-    local_dataset_path = r"C:\Users\Utente\OneDrive\Desktop\Università\Tirocinio\Progetto\dataset\BPIC15_1.csv"
-    kaggle_dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"  # Modifica con il nome corretto del dataset su Kaggle
+   # Se siamo su Windows (PC)
+   if os.name == "nt":
+       dataset_path = r"C:\Users\Utente\OneDrive\Desktop\Università\Tirocinio\Progetto\dataset\BPIC15_1.csv"
+# Se siamo su Linux (Kaggle)
+   else:
+       dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"  # Assicurati che il nome sia corretto!
 
-    if os.path.exists(local_dataset_path):
-        dataset_path = local_dataset_path
-    elif os.path.exists(kaggle_dataset_path):
-        dataset_path = kaggle_dataset_path
-    else:
-        raise FileNotFoundError("Errore: Il file CSV non esiste né su PC né su Kaggle! Controlla il percorso.")
+# Controlla se il file esiste
+    if not os.path.exists(dataset_path):
+       print(f"ERRORE: Il file CSV '{dataset_path}' non esiste!")
+       print(f"Contenuto della directory attuale: {os.listdir(os.getcwd())}")
+       raise FileNotFoundError("Il file CSV non è stato trovato. Controlla il percorso!")
 
-    print(f"✅ Dataset trovato in: {dataset_path}")
+    print(f"Dataset trovato in: {dataset_path}")
 
     #  Controllo se il file CSV esiste
     if not os.path.exists(dataset_path):
