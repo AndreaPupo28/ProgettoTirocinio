@@ -77,7 +77,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
     model = AutoModel.from_pretrained(model_name)
 
-    dataset_path = "dataset/BPIC15_1.csv"
+    dataset_path = r"C:\Users\Utente\OneDrive\Desktop\Università\Tirocinio\Progetto\dataset\BPIC15_1.csv"
     #  Controllo se il file CSV esiste
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste! Controlla il percorso.")
