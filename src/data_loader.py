@@ -25,6 +25,7 @@ class LogDataset(Dataset):
         # Creare la mappatura delle attività a indici numerici
         unique_activities = sorted(set(a for seq in self.data for a in seq[0] + [seq[1]]))
         self.label_map = {label: idx for idx, label in enumerate(unique_activities)}
+        self.num_classes = len(self.label_map)
 
         print(f"Classi trovate: {self.label_map}")
 
