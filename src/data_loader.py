@@ -12,8 +12,8 @@ class LogDataset(Dataset):
         self.max_length = max_length
 
         # Creare un dataset basato su sequenze incrementali per ogni case
-        self.data = self.data.sort_values(by=["case_id", "timestamp"])  # Ordina per case e tempo
-        grouped = self.data.groupby("case_id")["activity"].apply(list)
+        self.data = self.data.sort_values(by=["case", "timestamp"])  # Ordina per case e tempo
+        grouped = self.data.groupby("case")["activity"].apply(list)
 
         sequences = []
         for case in grouped:
