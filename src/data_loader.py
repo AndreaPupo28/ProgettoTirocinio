@@ -27,7 +27,7 @@ class LogDataset(Dataset):
         self.label_map = {label: idx for idx, label in enumerate(unique_activities)}
         self.num_classes = len(self.label_map)
 
-        print(f"Classi trovate: {self.label_map}")
+        #print(f"Classi trovate: {self.label_map}")
 
     def __len__(self):
         return len(self.data)
