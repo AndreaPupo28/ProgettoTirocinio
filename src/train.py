@@ -1,7 +1,6 @@
 import torch
-import numpy as np
 
-def train(model, train_loader, test_loader, optimizer, epochs, criterion, device, patience=3):
+def train(model, train_loader, optimizer, epochs, criterion, device, patience=3):
     model.train()
     best_loss = float("inf")
     patience_counter = 0
@@ -22,7 +21,7 @@ def train(model, train_loader, test_loader, optimizer, epochs, criterion, device
             total_loss += loss.item()
 
         avg_loss = total_loss / len(train_loader)
-        print(f"Epoch {epoch + 1}/{epochs}, Loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch + 1}/{epochs} → Training Loss: {avg_loss:.4f}")
 
         if avg_loss < best_loss:
             best_loss = avg_loss
@@ -30,7 +29,7 @@ def train(model, train_loader, test_loader, optimizer, epochs, criterion, device
         else:
             patience_counter += 1
             if patience_counter >= patience:
-                print("Early stopping activated.")
+                print("\nEarly stopping attivato: la loss non sta migliorando.")
                 break
 
     return model
