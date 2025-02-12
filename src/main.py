@@ -36,6 +36,7 @@ if __name__ == "__main__":
     if not os.path.exists("models/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
         model = train(model, train_loader, optimizer, 10, criterion, device)
+        os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "models/modello_addestrato.pth")
         print("\nModello addestrato e salvato con successo.")
     else:
