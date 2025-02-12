@@ -11,15 +11,20 @@ class LogDataset(Dataset):
         self.tokenizer = tokenizer
         self.max_length = max_length
 
-        # Creiamo una colonna "next_log" con il valore della riga successiva
-        self.data["next_log"] = self.data["activity"].shift(-1)
-        self.data.dropna(subset=["next_log"], inplace=True)
+        # Creare un dataset basato su sequenze incrementali per ogni case
+        self.data = self.data.sort_values(by=["case_id", "timestamp"])  # Ordina per case e tempo
+        grouped = self.data.groupby("case_id")["activity"].apply(list)
 
-        self.label_map = {label: idx for idx, label in enumerate(sorted(self.data["activity"].unique()))}
-        self.data["label"] = self.data["activity"].map(self.label_map)
-        self.data["next_label"] = self.data["next_log"].map(self.label_map)
+        sequences = []
+        for case in grouped:
+            for i in range(1, len(case)):
+                sequences.append((case[:i], case[i]))  # X = [A1, A2, ..., Ai], Y = Ai+1
 
-        self.num_classes = len(self.label_map)
+        self.data = sequences
+
+        # Creare la mappatura delle attività a indici numerici
+        unique_activities = sorted(set(a for seq in self.data for a in seq[0] + [seq[1]]))
+        self.label_map = {label: idx for idx, label in enumerate(unique_activities)}
 
         print(f"Classi trovate: {self.label_map}")
 
@@ -27,11 +32,14 @@ class LogDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        log_entry = str(self.data.iloc[idx]["activity"])
-        next_label = int(self.data.iloc[idx]["next_label"])
+        sequence, next_activity = self.data[idx]
+
+        # Convertire la sequenza in stringa unica per la tokenizzazione
+        input_text = " ".join(sequence)
+        next_label = self.label_map[next_activity]
 
         inputs = self.tokenizer(
-            log_entry,
+            input_text,
             return_tensors="pt",
             max_length=self.max_length,
             padding="max_length",
