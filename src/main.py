@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     model.eval()
     random_sequence, _ = random.choice(dataset.data)  # Prende solo X
-    current_log = " ".join(random_sequence[-5])  # Converti la sequenza in stringa
+    current_log = " ".join(random_sequence[-5:]) # Converti la sequenza in stringa
     predicted_next, probabilities = predict_next_log(model, tokenizer, current_log, dataset.label_map, device)
 
     print(f"\nLog attuale: {current_log}")
