@@ -33,7 +33,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
     criterion = torch.nn.CrossEntropyLoss()
 
-    if not os.path.exists("models/modello_addestrato.pth"):
+    if not os.path.exists("model_path = "/kaggle/working/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         print("\nModello addestrato e salvato con successo.")
     else:
         print("\nCaricamento del modello già addestrato...")
-        model.load_state_dict(torch.load("models/modello_addestrato.pth"))
+        model.load_state_dict(torch.load("model_path = "/kaggle/working/modello_addestrato.pth"))
 
     # Valutazione del modello dopo il training
     print("\nValutazione del modello sul test set...")
