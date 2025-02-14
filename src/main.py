@@ -48,9 +48,22 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     model.eval()
-    random_sequence, _ = random.choice(dataset.data)  # Prende solo X
-    current_log = " ".join(random_sequence[-5:]) # Converti la sequenza in stringa
-    predicted_next, probabilities = predict_next_log(model, tokenizer, current_log, dataset.label_map, device)
+    random_sequence, _ = random.choice(dataset.data)  # Prende un case casuale
+    generated_sequence = [random_sequence[0]] 
 
-    print(f"\nSequenza di input per il modello: {current_log}")
-    print(f"Log successivo predetto: {predicted_next}")
+    print("\nInizio della generazione della traccia completa...\n")
+
+    while True:  # Continua fino a quando il modello non trova più output plausibili
+        input_text = " ".join(generated_sequence)  # Converte la lista in stringa
+        predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
+
+        print(f"Traccia generata finora: {' → '.join(generated_sequence)}")
+        print(f"Prossima attività predetta: {predicted_next}\n")
+
+        # Se il modello non ha output validi, interrompiamo il ciclo
+        if predicted_next is None or predicted_next in generated_sequence:
+            print("Fine della traccia: nessuna nuova attività da predire.")
+            break
+
+        # Aggiunge il nuovo step alla sequenza
+        generated_sequence.append(predicted_next)
