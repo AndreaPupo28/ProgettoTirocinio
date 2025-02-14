@@ -48,11 +48,11 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     model.eval()
-    for case_id, case_sequence in dataset.data: 
-        generated_sequence = [case_sequence[0]]
+    for case_id, case_sequence in dataset.data.items():
+        generated_sequence = [case_sequence[0]]  # Inizia solo dalla PRIMA attività del case
 
         print("\n--------------------------------------")
-        print(f"Inizio della generazione per il case {case_id}: {' → '.join(generated_sequence)}")
+        print(f"Inizio della generazione per il case {case_id}")
         print("--------------------------------------\n")
 
 
