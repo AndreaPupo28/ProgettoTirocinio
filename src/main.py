@@ -48,22 +48,23 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     model.eval()
-    random_sequence, _ = random.choice(dataset.data)  # Prende un case casuale
-    generated_sequence = [random_sequence[0]] 
+    for case_sequence, _ in dataset.data:
+        generated_sequence = [case_sequence[0]]
 
-    print("\nInizio della generazione della traccia completa...\n")
+        print("\n--------------------------------------")
+        print(f"Inizio della generazione per il case: {' → '.join(generated_sequence)}")
+        print("--------------------------------------\n")
 
-    while True:  # Continua fino a quando il modello non trova più output plausibili
-        input_text = " ".join(generated_sequence)  # Converte la lista in stringa
-        predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
+        while True:
+            input_text = " ".join(generated_sequence)  # Converte la lista in stringa
+            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
+            
+            print(f"Traccia generata finora: {' → '.join(generated_sequence)}")
+            print(f"Prossima attività predetta: {predicted_next}\n")
+ 
+            if predicted_next is None or predicted_next in generated_sequence:
+                print("Fine della traccia per questo case: nessuna nuova attività da predire.")
+                break
 
-        print(f"Traccia generata finora: {' → '.join(generated_sequence)}")
-        print(f"Prossima attività predetta: {predicted_next}\n")
+            generated_sequence.append(predicted_next)
 
-        # Se il modello non ha output validi, interrompiamo il ciclo
-        if predicted_next is None or predicted_next in generated_sequence:
-            print("Fine della traccia: nessuna nuova attività da predire.")
-            break
-
-        # Aggiunge il nuovo step alla sequenza
-        generated_sequence.append(predicted_next)
