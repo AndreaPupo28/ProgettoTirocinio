@@ -48,8 +48,10 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     model.eval()
-    for case_id, case_sequence in dataset.data.items():
-        generated_sequence = [case_sequence[0]]  # Inizia solo dalla PRIMA attività del case
+    for case in dataset.data:  # Itera direttamente sulla lista dei case
+        case_id = case[0]  # Il primo elemento è l'ID del case
+        case_sequence = case[1]  # Il secondo elemento è la sequenza delle attività
+
 
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
