@@ -51,9 +51,9 @@ if __name__ == "__main__":
     for case_id, case_sequence in dataset.data: 
         generated_sequence = [case_sequence[0]]
 
-       print("\n--------------------------------------")
-       print(f"Inizio della generazione per il case {case_id}: {' → '.join(generated_sequence)}")
-       print("--------------------------------------\n")
+        print("\n--------------------------------------")
+        print(f"Inizio della generazione per il case {case_id}: {' → '.join(generated_sequence)}")
+        print("--------------------------------------\n")
 
 
         while True:
