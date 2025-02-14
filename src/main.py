@@ -48,12 +48,13 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     model.eval()
-    for case_sequence, _ in dataset.data:
+    for case_id, case_sequence in dataset.data: 
         generated_sequence = [case_sequence[0]]
 
-        print("\n--------------------------------------")
-        print(f"Inizio della generazione per il case: {' → '.join(generated_sequence)}")
-        print("--------------------------------------\n")
+       print("\n--------------------------------------")
+       print(f"Inizio della generazione per il case {case_id}: {' → '.join(generated_sequence)}")
+       print("--------------------------------------\n")
+
 
         while True:
             input_text = " ".join(generated_sequence)  # Converte la lista in stringa
