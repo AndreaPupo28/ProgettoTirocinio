@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-def predict_next_log(model, tokenizer, current_log, label_map, device, constraints, num_particles=100, completed=True):
+def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
     model.eval()
     with torch.no_grad():
         inputs = tokenizer(
@@ -16,7 +16,6 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, constrain
         probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy().flatten()
 
     sorted_indices = np.argsort(probs)[::-1]  # Indici delle classi ordinate per probabilità decrescente
-
     valid_activities = []  # Per memorizzare solo le attività che rispettano i vincoli
 
     for idx in sorted_indices:
@@ -26,7 +25,8 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, constrain
         # Creiamo una sequenza estesa con la nuova attività per verificare i vincoli
         extended_sequence = f"{current_log} {log_name}"
 
-        if satisfies(extended_sequence, constraints, detailed=False, completed=completed):
+        # Controlliamo il vincolo direttamente senza passare constraints
+        if satisfies(extended_sequence, {}, detailed=False, completed=completed):
             valid_activities.append((log_name, log_prob))
 
     if not valid_activities:
