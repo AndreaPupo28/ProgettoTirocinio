@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+from src.contraints_checker import satisfies
+
 
 def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
     model.eval()
