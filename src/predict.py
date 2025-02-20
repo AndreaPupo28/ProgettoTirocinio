@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from constraints_checker import satisfies
+from Declare4Py.Utils.Declare.Templates.AbstractTemplate import AbstractTemplate
 
 
 def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
@@ -26,13 +27,13 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
 
         # Creiamo una sequenza estesa con la nuova attività per verificare i vincoli
         extended_sequence = f"{current_log} {log_name}"
-
-        # Controlliamo il vincolo direttamente senza passare constraints
+        
         dummy_constraint = {
-             "template": None, 
-              "activities": [], 
-              "condition": ["dummy_condition"]  # Assicuriamoci che la lista non sia vuota
+            "template": AbstractTemplate(),  # Usiamo un oggetto fittizio valido
+            "activities": [],
+            "condition": ["dummy_condition"]
         }
+
 
         if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
             valid_activities.append((log_name, log_prob))
