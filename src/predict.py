@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from constraints_checker import satisfies
+from Declare4Py.Utils.Declare.Checkers import TemplateConstraintChecker
 
 
 def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
@@ -27,10 +28,15 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
         # Creiamo una sequenza estesa con la nuova attività per verificare i vincoli
         extended_sequence = f"{current_log} {log_name}"
         
+        class DummyTemplate:
+            templ_str = "DummyTemplate"  # Valore necessario per evitare l'errore
+            is_binary = False
+            supports_cardinality = False
+            
         dummy_constraint = {
-            "template": {"is_binary": False, "supports_cardinality": False},  # Evitiamo errori sulle proprietà mancanti
-            "activities": [],
-            "condition": ["dummy_condition"]
+                "template": DummyTemplate(),  # Passiamo un oggetto valido invece di un dizionario
+                "activities": [],
+                "condition": ["dummy_condition"]
         }
 
         if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
