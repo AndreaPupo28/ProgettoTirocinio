@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from constraints_checker import satisfies
-from Declare4Py.Utils.Declare.Templates.AbstractTemplate import AbstractTemplate
 
 
 def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
@@ -29,10 +28,11 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
         extended_sequence = f"{current_log} {log_name}"
         
         dummy_constraint = {
-            "template": AbstractTemplate(),  # Usiamo un oggetto fittizio valido
-            "activities": [],
-            "condition": ["dummy_condition"]
+           "template": None,  # Nessun template fittizio
+           "activities": [],
+           "condition": ["dummy_condition"]
         }
+
 
 
         if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
