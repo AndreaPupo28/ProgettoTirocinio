@@ -75,7 +75,11 @@ if __name__ == "__main__":
 
         while True:
             input_text = " ".join(generated_sequence)  # Converte la lista in stringa
-            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
+            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device, constraints)
+
+            if predicted_next is None:
+                print(f"Generazione terminata per il case {case_id}: nessuna attività valida trovata.")
+                break  # Interrompe la generazione della sequenza
 
             print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
             print(f"Prossima attività predetta: {predicted_next}\n")
