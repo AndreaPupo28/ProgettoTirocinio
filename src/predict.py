@@ -28,12 +28,10 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
         extended_sequence = f"{current_log} {log_name}"
         
         dummy_constraint = {
-           "template": None,  # Nessun template fittizio
-           "activities": [],
-           "condition": ["dummy_condition"]
+            "template": {"is_binary": False, "supports_cardinality": False},  # Evitiamo errori sulle proprietà mancanti
+            "activities": [],
+            "condition": ["dummy_condition"]
         }
-
-
 
         if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
             valid_activities.append((log_name, log_prob))
