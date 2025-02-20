@@ -56,8 +56,8 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     if constraint['template'] and hasattr(constraint['template'], 'supports_cardinality') and constraint['template'].supports_cardinality:
         rules["n"] = constraint.get('n', 1)  # Usa un valore di default
 
-    if constraint['template'].is_binary:
-        rules["correlation"] = constraint['condition'][1]
+    if constraint['template'] and hasattr(constraint['template'], 'is_binary') and constraint['template'].is_binary:
+        rules["correlation"] = constraint['condition'][1] if len(constraint['condition']) > 1 else "default_value"
 
     rules["time"] = constraint['condition'][-1]
     # Checking constraint
