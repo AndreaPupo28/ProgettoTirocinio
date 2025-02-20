@@ -19,7 +19,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments,
 from pyxdameraulevenshtein import normalized_damerau_levenshtein_distance
 from transformers.models.gpt2.configuration_gpt2 import GPT2Config
 from datasets import Dataset
-from Declare4Py.Checkers import TemplateConstraintChecker
+from Declare4Py.Utils.Declare.Checkers import TemplateConstraintChecker
 from Declare4Py.Utils.Declare.TraceStates import TraceState
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from pm4py.objects.conversion.log import converter as log_converter
