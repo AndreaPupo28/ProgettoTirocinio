@@ -9,6 +9,8 @@ from model import BertClassifier
 from train import train
 from evaluation import evaluate_model
 from predict import predict_next_log
+from constraint_checker import check_constraints
+
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
