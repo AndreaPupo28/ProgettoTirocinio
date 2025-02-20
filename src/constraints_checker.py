@@ -54,8 +54,7 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     "activation": constraint['condition'][0] if constraint['condition'] else "default_condition"
     }
     if constraint['template'] and hasattr(constraint['template'], 'supports_cardinality') and constraint['template'].supports_cardinality:
-        rules["n"] = constraint.get('n', 1)  # Usa un valore di default per sicurezza
-
+        rules["n"] = constraint.get('n', 1)  # Usa un valore di default
 
     if constraint['template'].is_binary:
         rules["correlation"] = constraint['condition'][1]
