@@ -75,11 +75,12 @@ if __name__ == "__main__":
 
         while True:
             input_text = " ".join(generated_sequence)  # Converte la lista in stringa
-            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device, constraints)
+            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
 
-            if predicted_next is None:
-                print(f"Generazione terminata per il case {case_id}: nessuna attività valida trovata.")
-                break  # Interrompe la generazione della sequenza
+            # Verifica che il vincolo sia soddisfatto prima di accettare la predizione
+            if not check_constraints(" ".join(generated_sequence + [predicted_next]), [], detailed=False, completed=True):
+                print(f"Nessuna attività valida trovata per il case {case_id}. Generazione terminata.")
+                break  # Interrompe la generazione della sequenza se nessuna predizione è valida
 
             print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
             print(f"Prossima attività predetta: {predicted_next}\n")
