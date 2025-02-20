@@ -49,7 +49,10 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     event_log.activity_key = event_log.log._properties['pm4py:param:activity_key']
     # Building constraint for checker
     consider_vacuity = False
-    rules = {"vacuous_satisfaction": consider_vacuity, "activation": constraint['condition'][0]}
+    rules = {
+    "vacuous_satisfaction": consider_vacuity,
+    "activation": constraint['condition'][0] if constraint['condition'] else "default_condition"
+    }
     if constraint['template'].supports_cardinality:
         rules["n"] = constraint['n']
 
