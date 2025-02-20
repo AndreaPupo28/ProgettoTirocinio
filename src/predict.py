@@ -28,7 +28,13 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
         extended_sequence = f"{current_log} {log_name}"
 
         # Controlliamo il vincolo direttamente senza passare constraints
-        if satisfies(extended_sequence, {"template": None, "activities": [], "condition": []}, detailed=False, completed=completed):
+        dummy_constraint = {
+             "template": None, 
+              "activities": [], 
+              "condition": ["dummy_condition"]  # Assicuriamoci che la lista non sia vuota
+        }
+
+        if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
             valid_activities.append((log_name, log_prob))
 
     if not valid_activities:
