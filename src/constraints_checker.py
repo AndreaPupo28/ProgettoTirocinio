@@ -61,7 +61,12 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
 
     rules["time"] = constraint['condition'][-1]
     # Checking constraint
+    if not hasattr(constraint['template'], 'templ_str'):
+        print("Errore: template non valido, usando valore di default.")
+        constraint['template'] = DummyTemplate()  # Usa il template fittizio se manca templ_str
+    
     complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules).get_template(constraint['template'])()).state
+
     if detailed:
         return complete_result
 
