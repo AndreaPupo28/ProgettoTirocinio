@@ -67,45 +67,26 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    all_generated_traces = {}
 
     for case_id, case_sequence in grouped_cases.items():
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
         print("--------------------------------------\n")
 
-        generated_sequence = [case_sequence[0]]  # Prima attività
-        max_iterations = 50
-        iteration_count = 0
-        all_generated_traces[case_id] = []  # Salviamo le tracce per ogni case_id
+        # Inizializza la sequenza con la prima attività
+        generated_sequence = [case_sequence[0]]
 
-        while iteration_count < max_iterations:
+        while True:
             input_text = " ".join(generated_sequence)
 
-            # Predizione di una singola attività
             predicted_next, _ = predict_next_log_with_constraints(
                 model, tokenizer, input_text, dataset.label_map, device
             )
 
+            print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
             if predicted_next is None or predicted_next in generated_sequence:
                 print(f"Fine della traccia per il case {case_id}: nessuna nuova attività da predire.")
                 break
 
             print(f"Prossima attività predetta: {predicted_next}\n")
-            generated_sequence.append(predicted_next)  # Aggiorna la sequenza
-
-            # 🔹 Ora generiamo più tracce possibili ma limitando il numero massimo di espansioni
-            generated_traces = generate_traces(
-                model, tokenizer, predicted_next, dataset.label_map, device
-            )
-            generated_traces = generated_traces[:5]  # Evitiamo di generare troppe tracce
-
-            print(f"Numero di tracce generate per il case {case_id}: {len(generated_traces)}")
-            for idx, trace in enumerate(generated_traces):
-                print(f"Traccia {idx + 1}: {' → '.join(trace)}")
-
-            all_generated_traces[case_id].append(list(generated_sequence))  # Salviamo la traccia
-            iteration_count += 1
-
-        if iteration_count >= max_iterations:
-            print(f"⚠️ ATTENZIONE: Raggiunto il limite massimo di {max_iterations} iterazioni per il case {case_id}!")
+            generated_sequence.append(predicted_next)
