@@ -27,6 +27,9 @@ from scipy.optimize import linear_sum_assignment
 from enum import Enum
 from peft import PeftModel, PeftConfig
 
+DELIM_SOS = "<SOS>"  # Simbolo di inizio sequenza
+DELIM_EOS = "<EOS>"  # Simbolo di fine sequenza
+
 
 def satisfies(sequence, constraint, detailed=False, completed=True):
     case_concept_name = []
@@ -49,24 +52,16 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     event_log.activity_key = event_log.log._properties['pm4py:param:activity_key']
     # Building constraint for checker
     consider_vacuity = False
-    rules = {
-    "vacuous_satisfaction": consider_vacuity,
-    "activation": constraint['condition'][0] if constraint['condition'] else "default_condition"
-    }
-    if constraint['template'] and hasattr(constraint['template'], 'supports_cardinality') and constraint['template'].supports_cardinality:
-        rules["n"] = constraint.get('n', 1)  # Usa un valore di default
+    rules = {"vacuous_satisfaction": consider_vacuity, "activation": constraint['condition'][0]}
+    if constraint['template'].supports_cardinality:
+        rules["n"] = constraint['n']
 
-    if constraint['template'] and hasattr(constraint['template'], 'is_binary') and constraint['template'].is_binary:
-        rules["correlation"] = constraint['condition'][1] if len(constraint['condition']) > 1 else "default_value"
+    if constraint['template'].is_binary:
+        rules["correlation"] = constraint['condition'][1]
 
     rules["time"] = constraint['condition'][-1]
     # Checking constraint
-    if not hasattr(constraint['template'], 'templ_str'):
-        print("Errore: template non valido, usando valore di default.")
-        constraint['template'] = DummyTemplate()  # Usa il template fittizio se manca templ_str
-    
     complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules).get_template(constraint['template'])()).state
-
     if detailed:
         return complete_result
 
@@ -104,3 +99,19 @@ def check_constraints(sequence, constraints, detailed, completed):
 
     else:
         return True
+
+def get_string_between(start_delim, end_delim, text):
+    """
+    Estrae la sottostringa tra due delimitatori.
+    """
+    import re
+    pattern = f"{re.escape(start_delim)}(.*?){re.escape(end_delim)}"
+    match = re.search(pattern, text)
+    return match.group(1) if match else ""
+
+def _extract_activities(sequence):
+    """
+    Estrae le attività da una sequenza di log. Supponiamo che siano separate da spazi.
+    """
+    return sequence.split()
+
