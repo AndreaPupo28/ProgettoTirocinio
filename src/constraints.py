@@ -1,8 +1,6 @@
-# constraints.py
+import pandas as pd
 
-# Simuliamo la struttura che `constraints_checker` si aspetta
 class ConstraintTemplate:
-    """ Classe generica per simulare i template di vincoli senza importarli. """
     def __init__(self, name, supports_cardinality=False, is_binary=False):
         self.name = name
         self.supports_cardinality = supports_cardinality
@@ -11,29 +9,42 @@ class ConstraintTemplate:
     def __repr__(self):
         return f"ConstraintTemplate({self.name})"
 
-# Creiamo i template compatibili con `constraints_checker.py`
 ResponseTemplate = ConstraintTemplate("Response", is_binary=True)
 PrecedenceTemplate = ConstraintTemplate("Precedence", is_binary=True)
 ExistenceTemplate = ConstraintTemplate("Existence", supports_cardinality=True)
 
-# Definizione dei constraints utilizzando i template simulati
-constraints = [
-    {
-        "template": ResponseTemplate,  # Vincolo di tipo "Response"
-        "activities": ["A", "B"],
-        "condition": ["A", "B", 24],  # Ad esempio, entro 24 ore
-        "n": 1  # Se richiesto da qualche vincolo
-    },
-    {
-        "template": PrecedenceTemplate,  # Vincolo di tipo "Precedence"
-        "activities": ["A", "B"],
-        "condition": ["A", "B", 24]
-    },
-    {
-        "template": ExistenceTemplate,  # Vincolo di tipo "Existence"
-        "activities": ["C"],
-        "condition": ["C", None, None],
-        "n": 1  # Necessario perché il template supporta cardinalità
-    }
-]
+def generate_dynamic_constraints(csv_path):
+    df = pd.read_csv(csv_path, low_memory=False)
 
+    if not {"case", "activity", "timestamp"}.issubset(df.columns):
+        raise ValueError("Il file CSV deve contenere le colonne 'case', 'activity' e 'timestamp'.")
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+
+    activity_counts = df["activity"].value_counts()
+    most_frequent_activities = activity_counts.index[:5].tolist()  # Prendiamo le 5 attività più comuni
+
+    first_activities = df.sort_values(by="timestamp").groupby("case").first()["activity"].value_counts()
+    last_activities = df.sort_values(by="timestamp").groupby("case").last()["activity"].value_counts()
+
+    most_common_start = first_activities.idxmax()
+    most_common_end = last_activities.idxmax()
+
+    constraints = []
+
+    constraints.append({
+        "template": PrecedenceTemplate,
+        "activities": [most_common_start, most_frequent_activities[0]],
+        "condition": [most_common_start, most_frequent_activities[0], None]
+    })
+
+    constraints.append({
+        "template": ResponseTemplate,
+        "activities": [most_common_start, most_common_end],
+        "condition": [most_common_start, most_common_end, 24]
+    })
+
+    return constraints
+
+csv_path = "dataset/BPIC15_1.csv"
+constraints = generate_dynamic_constraints(csv_path)
