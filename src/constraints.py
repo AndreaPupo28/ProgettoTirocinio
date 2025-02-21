@@ -1,4 +1,4 @@
-from Declare4Py.Utils.Declare.Checkers import ResponseTemplate, PrecedenceTemplate, ExistenceTemplate
+from declare_templates import ResponseTemplate, PrecedenceTemplate, ExistenceTemplate
 
 # Esempio di constraints definiti come lista di dizionari
 constraints = [
