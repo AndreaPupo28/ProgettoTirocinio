@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from contraints_checker import check_constraints
+from constraints_checker import check_constraints
 from constraints import constraints
 
 
