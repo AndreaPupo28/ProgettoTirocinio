@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 # Importa la funzione check_constraints dal modulo contraints_checker
-from contraints_checker import check_constraints
+from constraints_checker import check_constraints
 # Importa la struttura dei constraints
 from constraints import constraints
 
