@@ -16,6 +16,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
     dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
 
+
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
@@ -36,6 +37,7 @@ if __name__ == "__main__":
 
     # Caricamento del modello addestrato
     if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
+
         print("\nAvvio dell'addestramento...")
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
@@ -51,10 +53,12 @@ if __name__ == "__main__":
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "/kaggle/working/modello_addestrato.pth")
+
         print("\nModello addestrato e salvato con successo.")
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
+
         model.eval() # impostato in modalità valutazione
 
     print("\nValutazione del modello sul test set...")
@@ -63,20 +67,22 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
+    all_generated_traces = {}
+
     for case_id, case_sequence in grouped_cases.items():
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
         print("--------------------------------------\n")
 
-        # Inizializza la sequenza con la prima attività
-        generated_sequence = [case_sequence[0]]
+        generated_sequence = [case_sequence[0]]  # Prima attività
         max_iterations = 50
         iteration_count = 0
+        all_generated_traces[case_id] = []  # Salviamo le tracce per ogni case_id
 
         while iteration_count < max_iterations:
             input_text = " ".join(generated_sequence)
 
-            # Predizione della prossima attività
+            # Predizione di una singola attività
             predicted_next, _ = predict_next_log_with_constraints(
                 model, tokenizer, input_text, dataset.label_map, device
             )
@@ -86,11 +92,20 @@ if __name__ == "__main__":
                 break
 
             print(f"Prossima attività predetta: {predicted_next}\n")
-            generated_sequence.append(predicted_next)  # Aggiunge la nuova attività alla sequenza
+            generated_sequence.append(predicted_next)  # Aggiorna la sequenza
 
-            print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
+            # 🔹 Ora generiamo più tracce possibili ma limitando il numero massimo di espansioni
+            generated_traces = generate_traces(
+                model, tokenizer, predicted_next, dataset.label_map, device
+            )
+            generated_traces = generated_traces[:5]  # Evitiamo di generare troppe tracce
 
+            print(f"Numero di tracce generate per il case {case_id}: {len(generated_traces)}")
+            for idx, trace in enumerate(generated_traces):
+                print(f"Traccia {idx + 1}: {' → '.join(trace)}")
+
+            all_generated_traces[case_id].append(list(generated_sequence))  # Salviamo la traccia
             iteration_count += 1
 
         if iteration_count >= max_iterations:
-            print(f"ATTENZIONE: Raggiunto il limite massimo di {max_iterations} iterazioni per il case {case_id}!")
+            print(f"⚠️ ATTENZIONE: Raggiunto il limite massimo di {max_iterations} iterazioni per il case {case_id}!")
