@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_loader import load_dataset
 from model import BertClassifier
-from predict import predict_next_log_with_constraints, generate_traces
+from predict import predict_next_log_with_constraints
 from train import train
 from evaluation import evaluate_model
 
