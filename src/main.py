@@ -6,11 +6,9 @@ from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_loader import load_dataset
 from model import BertClassifier
+from src.predict import predict_next_log_with_constraints
 from train import train
 from evaluation import evaluate_model
-from predict import predict_next_log
-from constraints_checker import check_constraints
-
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
@@ -21,17 +19,16 @@ if __name__ == "__main__":
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
-    # Caricare il dataset come DataFrame Pandas per gestire i case
     df = pd.read_csv(dataset_path, low_memory=False)
 
-    # Verificare il nome corretto della colonna dei case (assumendo che sia 'case')
+    # Verifica il nome corretto della colonna dei case (assumendo che sia 'case')
     case_column = "case"
     activity_column = "activity"
 
     if case_column not in df.columns or activity_column not in df.columns:
         raise KeyError("Errore: Il file CSV non contiene le colonne richieste.")
 
-    # Raggruppare le attività per ogni case
+    # Raggruppa le attività per ogni case (dizionario)
     grouped_cases = df.groupby(case_column)[activity_column].apply(list).to_dict()
 
     # Creazione del modello
@@ -58,7 +55,7 @@ if __name__ == "__main__":
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
-        model.eval()
+        model.eval() # impostato in modalità valutazione
 
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
@@ -66,7 +63,6 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    # **Iterare su tutti i case per generare la sequenza completa**
     for case_id, case_sequence in grouped_cases.items():
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
@@ -76,21 +72,16 @@ if __name__ == "__main__":
         generated_sequence = [case_sequence[0]]
 
         while True:
-            input_text = " ".join(generated_sequence)  # Converte la lista in stringa
-            predicted_next, _ = predict_next_log(model, tokenizer, input_text, dataset.label_map, device)
+            input_text = " ".join(generated_sequence)
 
-            # Verifica che il vincolo sia soddisfatto prima di accettare la predizione
-            if not check_constraints(" ".join(generated_sequence + [predicted_next]), [], detailed=False, completed=True):
-                print(f"Nessuna attività valida trovata per il case {case_id}. Generazione terminata.")
-                break  # Interrompe la generazione della sequenza se nessuna predizione è valida
+            predicted_next, _ = predict_next_log_with_constraints(
+                model, tokenizer, input_text, dataset.label_map, device
+            )
 
             print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
-            print(f"Prossima attività predetta: {predicted_next}\n")
-
-            # Se il modello non ha output validi, interrompe il ciclo
             if predicted_next is None or predicted_next in generated_sequence:
                 print(f"Fine della traccia per il case {case_id}: nessuna nuova attività da predire.")
                 break
 
-            # Aggiunge il nuovo step alla sequenza
+            print(f"Prossima attività predetta: {predicted_next}\n")
             generated_sequence.append(predicted_next)
