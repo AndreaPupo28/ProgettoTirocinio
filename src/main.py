@@ -71,10 +71,16 @@ if __name__ == "__main__":
         # Inizializza la sequenza con la prima attività
         generated_sequence = [case_sequence[0]]
 
-        while True:
+        # Numero massimo di iterazioni per evitare loop infiniti
+        max_iterations = 50
+        iteration_count = 0
+
+        while iteration_count < max_iterations:
+            print(f"Iterazione {iteration_count + 1} per il case {case_id}")
+
             input_text = " ".join(generated_sequence)
 
-            # Predizione della prossima attività più probabile rispettando i vincoli
+            # Predizione della prossima attività più probabile
             predicted_next, _ = predict_next_log_with_constraints(
                 model, tokenizer, input_text, dataset.label_map, device
             )
@@ -84,15 +90,25 @@ if __name__ == "__main__":
                 break
 
             print(f"Prossima attività predetta: {predicted_next}\n")
-            generated_sequence.append(predicted_next)  # Aggiorna la sequenza
+            generated_sequence.append(predicted_next)  # Aggiunge la nuova attività alla sequenza
 
-            # Generiamo più tracce possibili da questa sequenza
+            # Generiamo più tracce possibili
             generated_traces = generate_traces(
                 model, tokenizer, predicted_next, dataset.label_map, device
             )
+
+            # Limitiamo il numero di tracce generate per evitare sovraccarico
+            max_traces_per_iteration = 5  # Puoi cambiare il valore se servono più tracce
+            generated_traces = generated_traces[:max_traces_per_iteration]
 
             print(f"Numero di tracce generate per il case {case_id}: {len(generated_traces)}")
             for idx, trace in enumerate(generated_traces):
                 print(f"Traccia {idx + 1}: {' → '.join(trace)}")
 
             print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
+
+            iteration_count += 1  # Incrementa il contatore per evitare loop infiniti
+
+        if iteration_count >= max_iterations:
+            print(f"ATTENZIONE: Raggiunto il limite massimo di {max_iterations} iterazioni per il case {case_id}!")
+
