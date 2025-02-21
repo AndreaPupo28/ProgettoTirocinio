@@ -1,10 +1,16 @@
 import torch
 import numpy as np
-from constraints_checker import satisfies
-from Declare4Py.Utils.Declare.Checkers import TemplateConstraintChecker
+# Importa la funzione check_constraints dal modulo contraints_checker
+from contraints_checker import check_constraints
+# Importa la struttura dei constraints
+from constraints import constraints
 
 
-def predict_next_log(model, tokenizer, current_log, label_map, device, num_particles=100, completed=True):
+def predict_next_log_with_constraints(model, tokenizer, current_log, label_map, device, num_candidates=10):
+    """
+    Predice il prossimo log, controllando fra i top `num_candidates` (default 10)
+    quale, se aggiunto alla sequenza corrente, rispetti i constraints definiti.
+    """
     model.eval()
     with torch.no_grad():
         inputs = tokenizer(
@@ -14,47 +20,28 @@ def predict_next_log(model, tokenizer, current_log, label_map, device, num_parti
             padding="max_length",
             truncation=True
         ).to(device)
-
         logits = model(inputs["input_ids"], inputs["attention_mask"])
         probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy().flatten()
 
-    sorted_indices = np.argsort(probs)[::-1]  # Indici delle classi ordinate per probabilità decrescente
-    valid_activities = []  # Per memorizzare solo le attività che rispettano i vincoli
+    # Ordina gli indici in ordine decrescente di probabilità
+    sorted_indices = np.argsort(probs)[::-1]
+    valid_candidates = []  # Lista dei candidati validi: tuple (nome log, probabilità)
 
-    for idx in sorted_indices:
-        log_name = list(label_map.keys())[idx]
-        log_prob = probs[idx]
+    for idx in sorted_indices[:num_candidates]:
+        candidate_log = list(label_map.keys())[idx]
+        candidate_prob = probs[idx]
+        # Crea la nuova sequenza concatenando quella corrente e il candidato
+        new_sequence = current_log + " " + candidate_log
 
-        # Creiamo una sequenza estesa con la nuova attività per verificare i vincoli
-        extended_sequence = f"{current_log} {log_name}"
-        
-        class DummyTemplate:
-            templ_str = "DummyTemplate"  # Valore necessario per evitare l'errore
-            is_binary = False
-            supports_cardinality = False
-            
-        dummy_constraint = {
-                "template": DummyTemplate(),  # Passiamo un oggetto valido invece di un dizionario
-                "activities": [],
-                "condition": ["dummy_condition"]
-        }
+        # Verifica se la nuova sequenza rispetta i constraints definiti
+        if check_constraints(new_sequence, constraints, detailed=False, completed=True):
+            valid_candidates.append((candidate_log, candidate_prob))
 
-        if satisfies(extended_sequence, dummy_constraint, detailed=False, completed=completed):
-            valid_activities.append((log_name, log_prob))
-
-    if not valid_activities:
-        print("Nessuna attività predetta soddisfa i vincoli. Terminazione della generazione della sequenza.")
-        return None, None  # Se nessuna attività è valida, interrompiamo la generazione
-
-    # Ricalcoliamo la probabilità solo per le attività valide
-    valid_probs = np.array([prob for _, prob in valid_activities])
-    valid_probs /= valid_probs.sum()  # Normalizziamo le probabilità
-
-    valid_labels = [label for label, _ in valid_activities]
-
-    # Monte Carlo sampling sulle attività valide
-    particles = np.random.choice(valid_labels, size=num_particles, p=valid_probs)
-    unique, counts = np.unique(particles, return_counts=True)
-    most_likely = unique[np.argmax(counts)]  # L'attività più scelta
-
-    return most_likely, valid_probs
+    if valid_candidates:
+        # Se ci sono candidati validi, ne viene scelto il primo (quello con la probabilità più alta)
+        chosen_candidate = valid_candidates[0][0]
+        print("Candidati validi che soddisfano i constraints:", valid_candidates)
+        return chosen_candidate, probs
+    else:
+        print(f"Nessun candidato tra i top {num_candidates} soddisfa i constraints.")
+        return None, probs
