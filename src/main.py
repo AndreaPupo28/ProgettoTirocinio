@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_loader import load_dataset
 from model import BertClassifier
-from predict import predict_next_log_with_constraints
+from predict import predict_next_log_with_constraints, generate_traces
 from train import train
 from evaluation import evaluate_model
 
@@ -74,14 +74,25 @@ if __name__ == "__main__":
         while True:
             input_text = " ".join(generated_sequence)
 
+            # Predizione della prossima attività più probabile rispettando i vincoli
             predicted_next, _ = predict_next_log_with_constraints(
                 model, tokenizer, input_text, dataset.label_map, device
             )
 
-            print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
             if predicted_next is None or predicted_next in generated_sequence:
                 print(f"Fine della traccia per il case {case_id}: nessuna nuova attività da predire.")
                 break
 
             print(f"Prossima attività predetta: {predicted_next}\n")
-            generated_sequence.append(predicted_next)
+            generated_sequence.append(predicted_next)  # Aggiorna la sequenza
+
+            # Generiamo più tracce possibili da questa sequenza
+            generated_traces = generate_traces(
+                model, tokenizer, predicted_next, dataset.label_map, device
+            )
+
+            print(f"Numero di tracce generate per il case {case_id}: {len(generated_traces)}")
+            for idx, trace in enumerate(generated_traces):
+                print(f"Traccia {idx + 1}: {' → '.join(trace)}")
+
+            print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
