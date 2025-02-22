@@ -68,7 +68,11 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
 
-    for case_id, case_sequence in grouped_cases.items():
+    MAX_CASES = 10  # Imposta il numero massimo di case da processare
+
+    for i, (case_id, case_sequence) in enumerate(grouped_cases.items()):
+        if i >= MAX_CASES:  # Interrompe il ciclo dopo aver processato MAX_CASES
+            break
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
         print("--------------------------------------\n")
