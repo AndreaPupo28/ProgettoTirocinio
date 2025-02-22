@@ -32,7 +32,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
             for idx in sorted_indices[:k]:  # Considera solo i top-k candidati
                 candidate_log = list(label_map.keys())[idx]
                 candidate_prob = probs[idx]
-                new_sequence = current_log + " " + candidate_log
+                new_sequence = current_log + " → " + candidate_log
                 print(f"  Candidato: {candidate_log}, Probabilità: {candidate_prob:.4f}")
 
                 if check_constraints(new_sequence, constraints, detailed=False, completed=True):
