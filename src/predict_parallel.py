@@ -41,7 +41,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
             if valid_candidates:
                 for candidate in valid_candidates:
                     new_sequences.append(seq + [ActivityPrediction(candidate.name, candidate.probability)])
-                    print(f"  → Aggiunta nuova sequenza: {' → '.join([act.name for act in seq + [candidate]])}")
+                    print(f"  → Aggiunta nuova sequenza: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq + [candidate]])}")
             else:
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join(seq)}")
