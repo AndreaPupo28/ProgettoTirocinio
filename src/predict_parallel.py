@@ -13,7 +13,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
         new_sequences = []
         print(f"\nAttuali sequenze in elaborazione: {[' → '.join(seq) for seq in sequences]}")
         for seq in sequences:
-            current_log = " ".join(seq)
+            current_log = " → ".join(seq)
             with torch.no_grad():
                 inputs = tokenizer(
                     current_log,
