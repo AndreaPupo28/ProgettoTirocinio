@@ -23,7 +23,7 @@ class LogDataset(Dataset):
 
         self.data = sequences
 
-        unique_activities = sorted(set(a for seq in self.data for a in seq[0] + [seq[1]]))
+        unique_activities = sorted(set(a.name for seq in self.data for a in seq[0] + [seq[1]]))
         self.label_map = {label: idx for idx, label in enumerate(unique_activities)} # Crea un dizionario
         self.num_classes = len(self.label_map)
 
