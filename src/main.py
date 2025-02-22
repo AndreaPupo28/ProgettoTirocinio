@@ -16,7 +16,6 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
     dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
 
-
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
@@ -37,7 +36,6 @@ if __name__ == "__main__":
 
     # Caricamento del modello addestrato
     if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
-
         print("\nAvvio dell'addestramento...")
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
@@ -53,12 +51,10 @@ if __name__ == "__main__":
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "/kaggle/working/modello_addestrato.pth")
-
         print("\nModello addestrato e salvato con successo.")
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
-
         model.eval() # impostato in modalità valutazione
 
     print("\nValutazione del modello sul test set...")
@@ -67,12 +63,7 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-
-    MAX_CASES = 10  # Imposta il numero massimo di case da processare
-
-    for i, (case_id, case_sequence) in enumerate(grouped_cases.items()):
-        if i >= MAX_CASES:  # Interrompe il ciclo dopo aver processato MAX_CASES
-            break
+    for case_id, case_sequence in grouped_cases.items():
         print("\n--------------------------------------")
         print(f"Inizio della generazione per il case {case_id}")
         print("--------------------------------------\n")
@@ -83,14 +74,17 @@ if __name__ == "__main__":
         while True:
             input_text = " ".join(generated_sequence)
 
-            predicted_next, _ = predict_next_log_with_constraints(
+            predicted_sequences = predict_next_log_with_constraints(
                 model, tokenizer, input_text, dataset.label_map, device
             )
 
-            print(f"Traccia generata finora per il case {case_id}: {' → '.join(generated_sequence)}")
-            if predicted_next is None or predicted_next in generated_sequence:
+            if not predicted_sequences or not predicted_sequences[0]:  # Se non ci sono sequenze generate
                 print(f"Fine della traccia per il case {case_id}: nessuna nuova attività da predire.")
                 break
 
-            print(f"Prossima attività predetta: {predicted_next}\n")
-            generated_sequence.append(predicted_next)
+            predicted_next_name, predicted_next_prob = predicted_sequences[0][0]  # Estrai nome e probabilità
+
+            print(f"Prossima attività predetta: {predicted_next_name} con probabilità {predicted_next_prob:.4f}\n")
+            generated_sequence.append(predicted_next_name)
+
+
