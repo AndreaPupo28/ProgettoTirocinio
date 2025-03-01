@@ -1,14 +1,13 @@
 import torch
 import os
-import random
 import pandas as pd
 from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_loader import load_dataset
 from model import BertClassifier
-from predict import predict_next_log_with_constraints
 from train import train
 from evaluation import evaluate_model
+from particle_filter import ParticleFilter
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
@@ -20,21 +19,8 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
     df = pd.read_csv(dataset_path, low_memory=False)
+    model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
 
-    # Verifica il nome corretto della colonna dei case (assumendo che sia 'case')
-    case_column = "case"
-    activity_column = "activity"
-
-    if case_column not in df.columns or activity_column not in df.columns:
-        raise KeyError("Errore: Il file CSV non contiene le colonne richieste.")
-
-    # Raggruppa le attività per ogni case (dizionario)
-    grouped_cases = df.groupby(case_column)[activity_column].apply(list).to_dict()
-
-    # Creazione del modello
-    model = BertClassifier(model_name, output_size=len(set(df[activity_column]))).to(device)
-
-    # Caricamento del modello addestrato
     if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
         dataset = load_dataset(dataset_path, tokenizer)
@@ -55,7 +41,7 @@ if __name__ == "__main__":
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
-        model.eval() # impostato in modalità valutazione
+        model.eval()
 
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
@@ -63,28 +49,11 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    for case_id, case_sequence in grouped_cases.items():
-        print("\n--------------------------------------")
-        print(f"Inizio della generazione per il case {case_id}")
-        print("--------------------------------------\n")
+    initial_activities = list(set(df["activity"].tolist()))[:5]  # Prendi le prime 5 attività uniche
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
+    pf.initialize_particles(initial_activities)
+    final_particles = pf.run(steps=10)
 
-        # Inizializza la sequenza con la prima attività
-        generated_sequence = [case_sequence[0]]
-
-        while True:
-            input_text = " ".join(generated_sequence)
-
-            predicted_sequences = predict_next_log_with_constraints(
-                model, tokenizer, input_text, dataset.label_map, device
-            )
-
-            if not predicted_sequences or not predicted_sequences[0]:  # Se non ci sono sequenze generate
-                print(f"Fine della traccia per il case {case_id}: nessuna nuova attività da predire.")
-                break
-
-            predicted_next_name, predicted_next_prob = predicted_sequences[0][0]  # Estrai nome e probabilità
-
-            print(f"Prossima attività predetta: {predicted_next_name} con probabilità {predicted_next_prob:.4f}\n")
-            generated_sequence.append(predicted_next_name)
-
-
+    print("\nParticelle finali generate:")
+    for particle in final_particles:
+        print([act.name for act in particle])
