@@ -50,9 +50,9 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     initial_activities = list(set(df["activity"].tolist()))[:5]  # Prendi le prime 5 attività uniche
-    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=5)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=10)
+    final_particles = pf.run(steps=2)
 
     print("\nParticelle finali generate:")
     for particle in final_particles:
