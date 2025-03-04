@@ -3,6 +3,7 @@ from predict import predict_next_log_with_constraints
 from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
+from interactive_constraint_manager import InteractiveConstraintManager
 
 class ParticleFilter:
     def __init__(self, model, tokenizer, label_map, device, num_particles=50):
@@ -12,6 +13,7 @@ class ParticleFilter:
         self.device = device
         self.num_particles = num_particles
         self.particles = []
+        self.constraint_manager = InteractiveConstraintManager()
 
     def initialize_particles(self, initial_activities):
         self.particles = [[ActivityPrediction(activity, 1.0)] for activity in initial_activities]
@@ -22,12 +24,15 @@ class ParticleFilter:
             print(f"Particella iniziale: {[act.name for act in particle]}")
 
     def sense_environment(self, particles):
-        # Placeholder per l'algoritmo di sensing dell'ambiente
-        print("[DEBUG] Sensing dell'ambiente - Algoritmo ancora da implementare")
-        return constraints  # Restituisce i vincoli statici esistenti come segnaposto
+        return constraints + self.constraint_manager.get_constraints()
 
     def step(self):
         new_particles = []
+        current_length = len(self.particles[0]) if self.particles else 0
+
+        # Richiedi vincoli all'utente se la lunghezza delle particelle è x
+        self.constraint_manager.request_constraints(current_length)
+
         for particle in self.particles:
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
@@ -54,3 +59,4 @@ class ParticleFilter:
                 print("Nessuna particella rimanente. Fine del processo.")
                 break
         return self.particles
+
