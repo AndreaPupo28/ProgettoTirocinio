@@ -28,12 +28,12 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
             sorted_indices = np.argsort(probs)[::-1]
             valid_candidates = []
 
-            print(f"\nPredizioni per la sequenza '{current_log}':")
+            #print(f"\nPredizioni per la sequenza '{current_log}':")
             for idx in sorted_indices[:k]:
                 candidate_log = list(label_map.keys())[idx]
                 candidate_prob = probs[idx]
                 new_sequence = current_log + " " + candidate_log
-                print(f"  Candidato: {candidate_log}, Probabilità: {candidate_prob:.4f}")
+                #print(f"  Candidato: {candidate_log}, Probabilità: {candidate_prob:.4f}")
 
                 if check_constraints(new_sequence, constraints, detailed=False, completed=True):
                     valid_candidates.append(ActivityPrediction(candidate_log, candidate_prob))
@@ -41,7 +41,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
             if valid_candidates:
                 for candidate in valid_candidates:
                     new_sequences.append(seq + [ActivityPrediction(candidate.name, candidate.probability)])
-                    print(f"  → Aggiunta nuova sequenza: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq + [candidate]])}")
+                    #print(f"  → Aggiunta nuova sequenza: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq + [candidate]])}")
             else:
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join(seq)}")
