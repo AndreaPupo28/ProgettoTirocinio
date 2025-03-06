@@ -19,6 +19,7 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
     df = pd.read_csv(dataset_path, low_memory=False)
+    df = df.sample(frac=0.1, random_state=42)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
 
     if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
