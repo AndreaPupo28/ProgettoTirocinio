@@ -53,7 +53,8 @@ if __name__ == "__main__":
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=5)
     pf.initialize_particles(initial_activities)
     final_particles = pf.run(steps=2)
-
+    similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
+    print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
     print("\nParticelle finali generate:")
     for particle in final_particles:
         print([act.name for act in particle])
