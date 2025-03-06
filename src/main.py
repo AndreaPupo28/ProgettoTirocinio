@@ -28,8 +28,8 @@ if __name__ == "__main__":
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+        train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
         criterion = torch.nn.CrossEntropyLoss()
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    test_loader = DataLoader(dataset, batch_size=8, shuffle=False)
+    test_loader = DataLoader(dataset, batch_size=4, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
