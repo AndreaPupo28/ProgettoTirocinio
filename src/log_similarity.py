@@ -16,7 +16,7 @@ def generate_log_matrix(logs, label_map):
     return matrix
 
 
-def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_candidates=5):
+def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_candidates=2):
     """
     Valuta la similarità tra il log originale e quello generato usando la metrica cfld.
     """
