@@ -28,7 +28,7 @@ class ParticleFilter:
         # Richiedi vincoli all'utente se la lunghezza delle particelle è x
         self.constraint_manager.request_constraints(current_length)
 
-        for particle in self.particles:
+        for particle in self.particles[:10]:
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
                 self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=5
