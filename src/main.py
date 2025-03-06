@@ -8,6 +8,7 @@ from model import BertClassifier
 from train import train
 from evaluation import evaluate_model
 from particle_filter import ParticleFilter
+from log_similarity import evaluate_log_similarity
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
@@ -19,18 +20,17 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
     df = pd.read_csv(dataset_path, low_memory=False)
-    df = df.sample(frac=0.1, random_state=42)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
 
-    if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
+    if not os.path.exists("/kaggle/working/modello_addestrato.pth")::
         print("\nAvvio dell'addestramento...")
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-        train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
         criterion = torch.nn.CrossEntropyLoss()
@@ -46,16 +46,18 @@ if __name__ == "__main__":
 
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    test_loader = DataLoader(dataset, batch_size=4, shuffle=False)
+    test_loader = DataLoader(dataset, batch_size=8, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    initial_activities = list(set(df["activity"].tolist()))[:5]  # Prendi le prime 5 attività uniche
-    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=3)
+    initial_activities = list(set(df["activity"].tolist()))[:5]  # prende le prime 5 attività uniche
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=2)
+    final_particles = pf.run(steps=10) #step: numero max di iterazioni per il PF per estendere le particelle
+
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
+
     print("\nParticelle finali generate:")
     for particle in final_particles:
         print([act.name for act in particle])
