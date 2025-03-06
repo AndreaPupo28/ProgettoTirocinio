@@ -24,6 +24,4 @@ def evaluate_model(model, data_loader, criterion, device):
     avg_loss = total_loss / len(data_loader)
     accuracy = correct / total if total > 0 else 0
     print(f"\nEvaluation - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
-    similarity_score = evaluate_log_similarity(model, data_loader.dataset, data_loader.dataset.label_map, device)
-    print(f"CFld Similarity: {similarity_score:.4f}")
     return avg_loss, accuracy
