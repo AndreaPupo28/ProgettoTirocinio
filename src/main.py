@@ -22,7 +22,7 @@ if __name__ == "__main__":
     df = pd.read_csv(dataset_path, low_memory=False)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
 
-    if not os.path.exists("/kaggle/working/modello_addestrato.pth")::
+    if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
