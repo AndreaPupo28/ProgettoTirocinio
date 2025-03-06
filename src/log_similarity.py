@@ -39,7 +39,6 @@ def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_ca
 
     # Calcolo della similarità tra i log
     similarity = get_log_similarity(original_log_matrix, generated_log_matrix)
-    print(f"Metrica CFld (similarità log): {similarity:.4f}")
     return similarity
 
 
