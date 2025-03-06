@@ -6,7 +6,7 @@ from activity import ActivityPrediction
 from interactive_constraint_manager import InteractiveConstraintManager
 
 class ParticleFilter:
-    def __init__(self, model, tokenizer, label_map, device, num_particles=5):
+    def __init__(self, model, tokenizer, label_map, device, num_particles=3):
         self.model = model
         self.tokenizer = tokenizer
         self.label_map = label_map
@@ -31,7 +31,7 @@ class ParticleFilter:
         for particle in self.particles[:10]:
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
-                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=5
+                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=2
             )
             if not predicted_sequences or not predicted_sequences[0]:
                 continue
@@ -44,7 +44,7 @@ class ParticleFilter:
 
         self.particles = new_particles
 
-    def run(self, steps=10):
+    def run(self, steps):
         for step_num in range(steps):
             if step_num % 5 == 0:
                 print(f"STEP {step_num}: {len(self.particles)} particelle attive")
