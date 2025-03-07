@@ -75,7 +75,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
 
     logging.info("Sequenze finali generate:")
     for seq in final_sequences:
-        print("  " + " → ".join([a.name if isinstance(a, ActivityPrediction) else a for a in seq]))
+        logging.info("  " + " → ".join([a.name if isinstance(a, ActivityPrediction) else a for a in seq]))
 
     return [[(activity.name, activity.probability) for activity in seq] for seq in final_sequences]
 
