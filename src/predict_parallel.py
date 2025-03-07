@@ -11,7 +11,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
 
     while sequences:
         new_sequences = []
-        #print(f"\nAttuali sequenze in elaborazione: {[' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq]) for seq in sequences]}")
+        print(f"\nAttuali sequenze in elaborazione: {[' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq]) for seq in sequences]}")
         for seq in sequences:
             current_log = " → ".join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])
             with torch.no_grad():
