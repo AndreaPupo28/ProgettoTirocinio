@@ -43,13 +43,16 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
 
             sorted_indices = np.argsort(probs)[::-1]  # ordina gli indici delle probabilità in modo decrescente
             valid_candidates = []
+            prob_threshold = 0.2  # Considera solo candidati con probabilità >= 0.2
             for idx in sorted_indices[:k]:
                 candidate_log = list(label_map.keys())[idx]
                 candidate_prob = probs[idx]
+                if candidate_prob < prob_threshold:
+                    continue  # Scarta candidati con probabilità troppo bassa
                 new_sequence = current_log + " " + candidate_log
                 if check_constraints(new_sequence, constraints, detailed=False, completed=True):
                     valid_candidates.append(ActivityPrediction(candidate_log, candidate_prob))
-
+                    
             if valid_candidates:
                 for candidate in valid_candidates:
                     new_sequences.append(seq + [ActivityPrediction(candidate.name, candidate.probability)])
