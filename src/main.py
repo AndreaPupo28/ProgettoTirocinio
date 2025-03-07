@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # Valutazione del modello
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    dataset = dataset[:500]  # Limita il dataset di valutazione
+    dataset = dataset
     test_loader = DataLoader(dataset, batch_size=2, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
