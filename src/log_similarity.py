@@ -62,7 +62,7 @@ def _compute_cfld(row_ind, col_ind, cost_matrix):
 
 
 def _pair_traces(normalized_distances, original_log, generated_log):
-    cost_matrix = numpy.array(normalized_distances).reshape(len(original_log), len(generated_log))
+    cost_matrix = np.array(normalized_distances).reshape(len(original_log), len(generated_log))
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
     return cost_matrix, row_ind, col_ind
 
