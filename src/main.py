@@ -32,47 +32,69 @@ if __name__ == "__main__":
             print(f"Vincoli caricati: {user_constraints}")
         except Exception as e:
             print(f"Errore nel caricamento dei vincoli: {e}")
-
+    
     # Configurazione del modello e del dispositivo
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
+    
+    # Percorso del dataset
     dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
-
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
-
-    # Campionamento del dataset per velocizzare l'esecuzione
-    df = pd.read_csv(dataset_path, low_memory=False)  # Mantiene solo il 10% delle righe
-    #print(f"Dataset ridotto: {len(df)} righe campionate.")
-
+    
+    # Caricamento del dataset per determinare le dimensioni dell'output
+    df = pd.read_csv(dataset_path, low_memory=False)
+    
+    # Istanzia il modello con il numero di classi pari al numero di attività uniche nel dataset
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
-
-    print("\nCaricamento del modello già addestrato...")
-    model.load_state_dict(torch.load("/kaggle/working/modello_addestrato2.pth", map_location=device))
-    model.eval()
-
-    # Valutazione del modello
+    
+    # Controllo sull'esistenza del file del modello addestrato
+    model_path = "/kaggle/working/modello_addestrato2.pth"
+    if not os.path.exists(model_path):
+        print("\nAvvio dell'addestramento...")
+        # Carica il dataset per l'addestramento e la valutazione
+        dataset = load_dataset(dataset_path, tokenizer)
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+    
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+    
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+        criterion = torch.nn.CrossEntropyLoss()
+    
+        model = train(model, train_loader, optimizer, 10, criterion, device)
+        # Assicura la creazione della cartella di destinazione, se necessario
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        torch.save(model.state_dict(), model_path)
+        print("\nModello addestrato e salvato con successo.")
+    else:
+        print("\nCaricamento del modello già addestrato...")
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.eval()
+    
+    # Valutazione del modello sul test set
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    dataset = dataset  # Limita il dataset di valutazione
     test_loader = DataLoader(dataset, batch_size=2, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
-
+    
     # Usa l'input dell'utente come attività iniziale
     initial_activities = [user_input]
     
-    # Inizializza il filtro particellare con i vincoli dinamici
+    # Inizializza il filtro particellare con i vincoli dinamici (se presenti)
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=3, constraints=user_constraints)
     pf.initialize_particles(initial_activities)
     final_particles = pf.run(steps=1)
-
+    
     # Calcola la similarità CFld
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
-
+    
     # Stampa le particelle finali generate
     print("\nParticelle finali generate:")
-    for particle in final_particles:  # Limita l'output a 10 particelle
+    for particle in final_particles:
         print([act.name for act in particle])
