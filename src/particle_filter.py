@@ -29,7 +29,7 @@ class ParticleFilter:
         # Richiede i vincoli senza input manuale
         self.constraint_manager.request_constraints(current_length)
 
-        for particle in self.particles[:5]:  # Limita a 5 particelle per step
+        for particle in self.particles[:3]:  # Limita a 5 particelle per step
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
                 self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=2
