@@ -12,6 +12,15 @@ from evaluation import evaluate_model
 from particle_filter import ParticleFilter
 from log_similarity import evaluate_log_similarity
 
+import logging
+
+logging.basicConfig(
+    filename='debug_log.txt',    # Il file in cui verranno salvate le stampe di debug
+    level=logging.INFO,          # Imposta il livello desiderato (puoi usare DEBUG per maggiori dettagli)
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+
 if __name__ == "__main__":
     # Parser per ottenere input dinamico tramite argparse
     parser = argparse.ArgumentParser(description='Esegui il modello con input dinamico')
