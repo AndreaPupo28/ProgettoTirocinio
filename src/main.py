@@ -47,7 +47,7 @@ if __name__ == "__main__":
     df = df.sample(frac=0.1, random_state=42)  # Mantiene solo il 10% delle righe
     print(f"Dataset ridotto: {len(df)} righe campionate.")
 
-    model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
+    model = BertClassifier(model_name, output_size=289).to(device)
 
     print("\nCaricamento del modello già addestrato...")
     model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth", map_location=device))
