@@ -54,7 +54,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
 
             sorted_indices = np.argsort(probs)[::-1]
             valid_candidates = []
-            prob_threshold = 0.2  # Considera solo candidati con probabilità >= 0.2
+            prob_threshold = 0.0  # Considera solo candidati con probabilità >= 0.2
             for idx in sorted_indices[:k]:
                 candidate_log = list(label_map.keys())[idx]
                 candidate_prob = probs[idx]
