@@ -94,18 +94,7 @@ if __name__ == "__main__":
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
     
-    # Salva tutte le particelle in un file di testo (opzionale, utile se vuoi l'intero output)
-    with open("output_particles.txt", "w") as f:
-        for particle in final_particles:
-            f.write(str([act.name for act in particle]) + "\n")
-
-    # Stampa limitata delle particelle finali generate (es. prime 10) per evitare log troppo lunghi
-    print("\nParticelle finali generate (prime 10):")
-    for i, particle in enumerate(final_particles):
-        if i < 4:
-            print([act.name for act in particle])
-        else:
-            break
-    
-    # Messaggio di debug finale
-    print("\nFine dello script. Tutto completato con successo!")
+    # Stampa le particelle finali generate
+    print("\nParticelle finali generate:")
+    for particle in final_particles:
+        print([act.name for act in particle])
