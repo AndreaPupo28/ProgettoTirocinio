@@ -21,7 +21,7 @@ def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_ca
     Valuta la similarità tra il log originale e quello generato usando la metrica cfld.
     """
     # Matrice del log originale
-    original_traces = [trace[0] for trace in dataset]
+    original_traces = [trace[0] for trace in dataset.data]
     original_log_matrix = generate_log_matrix(original_traces, label_map)
 
     # Generazione del log predetto
