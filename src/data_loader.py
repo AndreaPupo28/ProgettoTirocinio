@@ -6,7 +6,8 @@ from activity import ActivityPrediction
 
 class LogDataset(Dataset):
     def __init__(self, file_path, tokenizer, max_length=128): # Costruttore
-        self.data = pd.read_csv(file_path, low_memory=False)
+        subset_size = 100  # Usa solo 100 righe per il debug
+        self.data = pd.read_csv(file_path, nrows=subset_size, low_memory=False)
         print(f"Dataset caricato: {len(self.data)} righe trovate.")
 
         self.tokenizer = tokenizer
