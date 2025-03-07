@@ -44,7 +44,6 @@ if __name__ == "__main__":
 
     # Campionamento del dataset per velocizzare l'esecuzione
     df = pd.read_csv(dataset_path, low_memory=False)
-    df = df.sample(frac=0.1, random_state=42)  # Mantiene solo il 10% delle righe
     print(f"Dataset ridotto: {len(df)} righe campionate.")
 
     model = BertClassifier(model_name, output_size=289).to(device)
