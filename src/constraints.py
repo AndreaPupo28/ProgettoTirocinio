@@ -46,5 +46,5 @@ def generate_dynamic_constraints(csv_path):
 
     return constraints
 
-csv_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
+csv_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
 constraints = generate_dynamic_constraints(csv_path)
