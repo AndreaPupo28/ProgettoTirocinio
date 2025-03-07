@@ -53,13 +53,15 @@ def _compute_pair_distances(original_log, generated_log):
 
 
 def _compute_cfld(row_ind, col_ind, cost_matrix):
+    if len(row_ind) == 0:
+        # Nessun accoppiamento trovato: restituisci un valore predefinito oppure solleva un'eccezione.
+        # In questo esempio, restituiamo 0 per indicare che la similarità non è calcolabile.
+        return 0
     total_distance = 0
     for i, j in zip(row_ind, col_ind):
         total_distance += cost_matrix[i][j]
-
     cfld = total_distance / len(row_ind)
     return cfld
-
 
 def _pair_traces(normalized_distances, original_log, generated_log):
     cost_matrix = np.array(normalized_distances).reshape(len(original_log), len(generated_log))
