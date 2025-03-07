@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from pyxdameraulevenshtein import normalized_damerau_levenshtein_distance
 from scipy.optimize import linear_sum_assignment
 from predict import predict_next_log_with_constraints
