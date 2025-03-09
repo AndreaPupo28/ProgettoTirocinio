@@ -58,7 +58,7 @@ if __name__ == "__main__":
     initial_activities = list(set(df["activity"].tolist()))[:5]  # prende le prime 5 attività uniche
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=10) #step: numero max di iterazioni per il PF per estendere le particelle
+    final_particles = pf.run(steps=2) #step: numero max di iterazioni per il PF per estendere le particelle
 
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
