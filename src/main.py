@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # Widget per input dinamico dell'attività iniziale
     activity_widget = widgets.Text(
         value='validate request',
-        placeholder='Inserisci un'attività',
+        placeholder='Inserisci un\'attività',
         description='Attività:',
         disabled=False
     )
