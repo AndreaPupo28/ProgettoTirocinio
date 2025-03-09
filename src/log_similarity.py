@@ -4,22 +4,15 @@ from scipy.optimize import linear_sum_assignment
 from predict import predict_next_log_with_constraints
 
 def generate_log_matrix(logs, label_map):
-    """
-    Genera una matrice numpy dove ogni riga rappresenta una traccia
-    e ogni colonna rappresenta una attività nel label_map.
-    """
-    matrix = np.zeros((len(logs), len(label_map)), dtype=int)
-    for i, trace in enumerate(logs):
+   matrix = np.zeros((len(logs), len(label_map)), dtype=int)
+   for i, trace in enumerate(logs):
         for activity in trace:
             if activity in label_map:
                 matrix[i, label_map[activity]] = 1
-    return matrix
+   return matrix
 
 
 def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_candidates=2):
-    """
-    Valuta la similarità tra il log originale e quello generato usando la metrica cfld.
-    """
     # Matrice del log originale
     original_traces = [trace[0] for trace in dataset.data]
     original_log_matrix = generate_log_matrix(original_traces, label_map)
@@ -34,10 +27,8 @@ def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_ca
         if predicted_sequences and predicted_sequences[0]:
             generated_traces.append([pred[0] for pred in predicted_sequences[0]])
 
-    # Matrice del log generato
     generated_log_matrix = generate_log_matrix(generated_traces, label_map)
 
-    # Calcolo della similarità tra i log
     similarity = get_log_similarity(original_log_matrix, generated_log_matrix)
     return similarity
 
@@ -54,8 +45,6 @@ def _compute_pair_distances(original_log, generated_log):
 
 def _compute_cfld(row_ind, col_ind, cost_matrix):
     if len(row_ind) == 0:
-        # Nessun accoppiamento trovato: restituisci un valore predefinito oppure solleva un'eccezione.
-        # In questo esempio, restituiamo 0 per indicare che la similarità non è calcolabile.
         return 0
     total_distance = 0
     for i, j in zip(row_ind, col_ind):
