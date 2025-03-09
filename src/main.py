@@ -1,8 +1,6 @@
 import torch
 import os
 import pandas as pd
-import argparse
-import json
 from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_loader import load_dataset
@@ -11,99 +9,60 @@ from train import train
 from evaluation import evaluate_model
 from particle_filter import ParticleFilter
 from log_similarity import evaluate_log_similarity
-
-import logging
-
-logging.basicConfig(
-    filename='debug_log.txt',    # Il file in cui verranno salvate le stampe di debug
-    level=logging.INFO,          # Imposta il livello desiderato (puoi usare DEBUG per maggiori dettagli)
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
+import time
 
 if __name__ == "__main__":
-    # Parser per ottenere input dinamico tramite argparse
-    parser = argparse.ArgumentParser(description='Esegui il modello con input dinamico')
-    parser.add_argument('--activity', type=str, default="A", help='Attività iniziale per il filtro particellare')
-    parser.add_argument('--constraints', type=str, default="", help='Percorso al file JSON con i vincoli utente')
-    args = parser.parse_args()
-    
-    # Recupera l'input dell'utente
-    user_input = args.activity
-    print(f"Attività iniziale scelta dall'utente: {user_input}")
-    
-    # Carica i vincoli dal file JSON, se specificato
-    user_constraints = []
-    if args.constraints:
-        try:
-            with open(args.constraints, 'r') as f:
-                user_constraints = json.load(f)
-            print(f"Vincoli caricati: {user_constraints}")
-        except Exception as e:
-            print(f"Errore nel caricamento dei vincoli: {e}")
-    
-    # Configurazione del modello e del dispositivo
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
-    
-    # Percorso del dataset
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/sepsis.csv"
+
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
-    
-    # Caricamento del dataset per determinare le dimensioni dell'output
+
     df = pd.read_csv(dataset_path, low_memory=False)
-    
-    # Istanzia il modello con il numero di classi pari al numero di attività uniche nel dataset
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
-    
-    # Controllo sull'esistenza del file del modello addestrato
-    model_path = "/kaggle/working/modello_addestrato2.pth"
-    if not os.path.exists(model_path):
+
+    if not os.path.exists("/kaggle/working/modello_addestrato3.pth"):
         print("\nAvvio dell'addestramento...")
-        # Carica il dataset per l'addestramento e la valutazione
+        start_time = time.time()
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-    
+
         train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
-    
+
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
         criterion = torch.nn.CrossEntropyLoss()
-    
+
         model = train(model, train_loader, optimizer, 10, criterion, device)
-        # Assicura la creazione della cartella di destinazione, se necessario
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        torch.save(model.state_dict(), model_path)
+        os.makedirs("models", exist_ok=True)
+        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato3.pth")
         print("\nModello addestrato e salvato con successo.")
+        end_time = time.time()  # Ferma il timer
+        training_time = end_time - start_time
+        print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
     else:
         print("\nCaricamento del modello già addestrato...")
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato3.pth"))
         model.eval()
-    
-    # Valutazione del modello sul test set
+
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    test_loader = DataLoader(dataset, batch_size=2, shuffle=False)
+    test_loader = DataLoader(dataset, batch_size=8, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
-    
-    # Usa l'input dell'utente come attività iniziale
-    initial_activities = [user_input]
-    
-    # Inizializza il filtro particellare con i vincoli dinamici (se presenti)
-    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=3, constraints=user_constraints)
+
+    initial_activities = list(set(df["activity"].tolist()))[:5]  # prende le prime 5 attività uniche
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=1)
-    
-    # Calcola la similarità CFld
+    final_particles = pf.run(steps=10) #step: numero max di iterazioni per il PF per estendere le particelle
+
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
-    
-    # Stampa le particelle finali generate
+
     print("\nParticelle finali generate:")
     for particle in final_particles:
         print([act.name for act in particle])
