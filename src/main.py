@@ -9,6 +9,9 @@ from train import train
 from evaluation import evaluate_model
 from particle_filter import ParticleFilter
 from log_similarity import evaluate_log_similarity
+from ipywidgets import widgets
+from IPython.display import display, clear_output
+import json
 import time
 
 if __name__ == "__main__":
@@ -22,6 +25,58 @@ if __name__ == "__main__":
 
     df = pd.read_csv(dataset_path, low_memory=False)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
+
+    # Widget per input dinamico dell'attività iniziale
+    activity_widget = widgets.Text(
+        value='validate request',
+        placeholder='Inserisci un'attività',
+        description='Attività:',
+        disabled=False
+    )
+
+    # Widget per aggiungere vincoli dinamici in formato JSON
+    constraints_widget = widgets.Textarea(
+        value='n',
+        placeholder='Inserisci i vincoli in formato JSON o "n" per nessun vincolo',
+        description='Vincoli:',
+        disabled=False,
+        layout=widgets.Layout(width='100%', height='100px')
+    )
+
+    save_button = widgets.Button(description="Salva Vincoli", button_style='success')
+    output = widgets.Output()
+
+    def on_save_button_clicked(b):
+        with output:
+            clear_output()
+            constraints_data = constraints_widget.value.strip().lower()
+            if constraints_data == "n":
+                constraints = []
+                with open('/kaggle/working/vincoli.json', 'w') as f:
+                    json.dump(constraints, f)
+                print("Nessun vincolo aggiuntivo selezionato. File 'vincoli.json' vuoto creato.")
+            else:
+                try:
+                    constraints = json.loads(constraints_data)
+                    with open('/kaggle/working/vincoli.json', 'w') as f:
+                        json.dump(constraints, f)
+                    print("Vincoli salvati correttamente in 'vincoli.json'.")
+                except json.JSONDecodeError:
+                    print("Errore: I vincoli non sono in un formato JSON valido.")
+            print(f"Attività iniziale scelta: {activity_widget.value}")
+
+    save_button.on_click(on_save_button_clicked)
+    display(activity_widget, constraints_widget, save_button, output)
+
+    initial_activity = activity_widget.value
+    vincoli_path = '/kaggle/working/vincoli.json'
+    if os.path.exists(vincoli_path):
+        with open(vincoli_path, 'r') as f:
+            constraints = json.load(f)
+    else:
+        constraints = []
+    print(f"Attività iniziale scelta dall'utente: {initial_activity}")
+    print(f"Vincoli caricati: {constraints}")
 
     if not os.path.exists("/kaggle/working/modello_addestrato3.pth"):
         print("\nAvvio dell'addestramento...")
@@ -41,7 +96,7 @@ if __name__ == "__main__":
         os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "/kaggle/working/modello_addestrato3.pth")
         print("\nModello addestrato e salvato con successo.")
-        end_time = time.time()  # Ferma il timer
+        end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
     else:
@@ -55,10 +110,10 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    initial_activities = list(set(df["activity"].tolist()))[:5]  # prende le prime 5 attività uniche
+    initial_activities = [initial_activity]
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=2) #step: numero max di iterazioni per il PF per estendere le particelle
+    final_particles = pf.run(steps=2)
 
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
