@@ -49,7 +49,7 @@ class ParticleFilter:
                 if check_constraints(" ".join([act.name for act in new_particle]), current_constraints, detailed=False, completed=True):
                     new_particles.append(new_particle)
                     print(f"Prossima attività predetta: {predicted_name} con probabilità {predicted_prob:.4f}\n")
-            MAX_PARTICLES = 1000  # Imposta il limite massimo di particelle
+            MAX_PARTICLES = 10000  # Imposta il limite massimo di particelle
             if len(new_particles) > MAX_PARTICLES:
                 print(f"Limite massimo di {MAX_PARTICLES} particelle raggiunto. Troncamento delle particelle extra...")
                 new_particles = random.sample(new_particles, MAX_PARTICLES)
