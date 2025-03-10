@@ -4,6 +4,8 @@ from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
 from interactive_constraint_manager import InteractiveConstraintManager
+import random
+
 
 class ParticleFilter:
     def __init__(self, model, tokenizer, label_map, device, num_particles=50):
@@ -47,6 +49,10 @@ class ParticleFilter:
                 if check_constraints(" ".join([act.name for act in new_particle]), current_constraints, detailed=False, completed=True):
                     new_particles.append(new_particle)
                     print(f"Prossima attività predetta: {predicted_name} con probabilità {predicted_prob:.4f}\n")
+            MAX_PARTICLES = 1000  # Imposta il limite massimo di particelle
+            if len(new_particles) > MAX_PARTICLES:
+                print(f"Limite massimo di {MAX_PARTICLES} particelle raggiunto. Troncamento delle particelle extra...")
+                new_particles = random.sample(new_particles, MAX_PARTICLES)
 
         self.particles = new_particles
 
