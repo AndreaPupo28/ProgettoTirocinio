@@ -122,9 +122,13 @@ if __name__ == "__main__":
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
     final_particles = pf.run(steps=1)
+    
+    if not final_particles:
+        print("Errore: Nessuna particella finale disponibile per calcolare il CFld Similarity!")
+    else:
+        similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
+        print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
-    similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
-    print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
     #print("\nParticelle finali generate:")
      #for particle in final_particles:
      #    print([act.name for act in particle])
