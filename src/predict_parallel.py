@@ -28,7 +28,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
                 print("Raggiunto il limite di nuove sequenze. Interruzione dell'aggiunta di nuove particelle.")
                 break
 
-            current_log = " → ".join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])
+            current_log = "<SOS> " + " → ".join([act.name if isinstance(act, ActivityPrediction) else act for act in seq]) + " <EOS>"
             with torch.no_grad():
                 inputs = tokenizer(
                     current_log,
