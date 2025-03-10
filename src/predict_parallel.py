@@ -4,7 +4,7 @@ from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
 
-def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=2): # consideriamo i 5 log più probabili
+def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=2):
     model.eval()
     sequences = [[initial_log]]
     final_sequences = []
@@ -12,9 +12,17 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
     MAX_SEQUENCES = 10000  # Limite massimo di sequenze attive
 
     while sequences and len(final_sequences) < MAX_SEQUENCES:
+        if len(sequences) > MAX_SEQUENCES:
+            print(f"Limite massimo di {MAX_SEQUENCES} sequenze attive raggiunto. Troncamento in corso...")
+            sequences = sequences[:MAX_SEQUENCES]
+
         new_sequences = []
         print(f"\nElaborazione di {len(sequences)} sequenze attive...")
         for seq in sequences:
+            if len(new_sequences) >= MAX_SEQUENCES:
+                print("Raggiunto il limite di nuove sequenze. Interruzione dell'aggiunta di nuove particelle.")
+                break
+
             current_log = " → ".join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])
             with torch.no_grad():
                 inputs = tokenizer(
@@ -40,14 +48,14 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
 
             if valid_candidates:
                 for candidate in valid_candidates:
-                    new_sequences.append(seq + [ActivityPrediction(candidate.name, candidate.probability)])
+                    if len(new_sequences) < MAX_SEQUENCES:
+                        new_sequences.append(seq + [ActivityPrediction(candidate.name, candidate.probability)])
+                    else:
+                        print("Raggiunto il limite durante l'aggiunta di nuovi candidati. Interruzione.")
+                        break
             else:
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])}")
-        
-        if len(new_sequences) > MAX_SEQUENCES:
-            print(f"Limite massimo di {MAX_SEQUENCES} sequenze raggiunto. Troncamento delle sequenze extra...")
-            new_sequences = new_sequences[:MAX_SEQUENCES]
 
         sequences = new_sequences
 
