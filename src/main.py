@@ -30,7 +30,7 @@ import torch
  
      # Widget per input dinamico dell'attività iniziale
      activity_widget = widgets.Text(
-         value='validate request',
+         value='Leucocytes',
          placeholder='Inserisci un\'attività',
          description='Attività:',
          disabled=False
