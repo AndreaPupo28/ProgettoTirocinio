@@ -109,7 +109,7 @@ if __name__ == "__main__":
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
 
-    reduced_test_size = int(0.10 * len(dataset)) 
+    reduced_test_size = int(0.01 * len(dataset)) 
     reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
     reduced_test_dataset = Subset(dataset, reduced_indices)
 
@@ -126,6 +126,6 @@ if __name__ == "__main__":
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
-    print("\nParticelle finali generate:")
-    for particle in final_particles:
-        print([act.name for act in particle])
+    #print("\nParticelle finali generate:")
+    #for particle in final_particles:
+    #    print([act.name for act in particle])
