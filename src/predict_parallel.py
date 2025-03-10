@@ -6,7 +6,7 @@ from activity import ActivityPrediction
 
 process_terminated = False
 
-def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=2):
+def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=5):
     global process_terminated
     model.eval()
     sequences = [[initial_log]]
