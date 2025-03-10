@@ -10,9 +10,9 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
     final_sequences = []
     
     MAX_SEQUENCES = 10000  # Limite massimo di sequenze attive
+    prev_len_sequences = 0  # Per monitorare il cambiamento nel numero di sequenze
 
     while sequences and len(final_sequences) < MAX_SEQUENCES:
-        # Limita immediatamente il numero di sequenze attive
         if len(sequences) > MAX_SEQUENCES:
             print(f"Limite massimo di {MAX_SEQUENCES} sequenze attive raggiunto. Troncamento in corso...")
             sequences = sequences[:MAX_SEQUENCES]
@@ -21,7 +21,6 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
         print(f"\nElaborazione di {len(sequences)} sequenze attive...")
 
         for seq in sequences:
-            # Se abbiamo raggiunto il massimo, interrompi la generazione di nuove sequenze
             if len(new_sequences) >= MAX_SEQUENCES:
                 print("Raggiunto il limite di nuove sequenze. Interruzione dell'aggiunta di nuove particelle.")
                 break
@@ -60,11 +59,17 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])}")
 
-        # Limita il numero di nuove sequenze prima della prossima iterazione
+        # Troncamento delle nuove sequenze per sicurezza
         if len(new_sequences) > MAX_SEQUENCES:
             print(f"Limite massimo di {MAX_SEQUENCES} nuove sequenze raggiunto. Troncamento delle sequenze extra...")
             new_sequences = new_sequences[:MAX_SEQUENCES]
 
+        # Condizione di uscita: se il numero di sequenze non cambia, interrompi il ciclo
+        if len(new_sequences) == prev_len_sequences:
+            print("Nessuna nuova sequenza valida generata. Interruzione del ciclo.")
+            break
+
+        prev_len_sequences = len(new_sequences)
         sequences = new_sequences
 
     return [[(activity.name, activity.probability) for activity in seq] for seq in final_sequences]
