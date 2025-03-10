@@ -4,15 +4,18 @@ from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
 
+process_terminated = False
+
 def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=2):
+    global process_terminated
     model.eval()
     sequences = [[initial_log]]
     final_sequences = []
     
-    MAX_SEQUENCES = 10000  # Limite massimo di sequenze attive
-    prev_len_sequences = 0  # Per monitorare il cambiamento nel numero di sequenze
+    MAX_SEQUENCES = 10000
+    prev_len_sequences = 0
 
-    while sequences and len(final_sequences) < MAX_SEQUENCES:
+    while sequences and len(final_sequences) < MAX_SEQUENCES and not process_terminated:
         if len(sequences) > MAX_SEQUENCES:
             print(f"Limite massimo di {MAX_SEQUENCES} sequenze attive raggiunto. Troncamento in corso...")
             sequences = sequences[:MAX_SEQUENCES]
@@ -59,17 +62,13 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])}")
 
-        # Troncamento delle nuove sequenze per sicurezza
-        if len(new_sequences) > MAX_SEQUENCES:
-            print(f"Limite massimo di {MAX_SEQUENCES} nuove sequenze raggiunto. Troncamento delle sequenze extra...")
-            new_sequences = new_sequences[:MAX_SEQUENCES]
-
-        # Condizione di uscita: se il numero di sequenze non cambia, interrompi il ciclo
         if len(new_sequences) == prev_len_sequences:
             print("Nessuna nuova sequenza valida generata. Interruzione del ciclo.")
+            process_terminated = True
             break
 
         prev_len_sequences = len(new_sequences)
         sequences = new_sequences
 
     return [[(activity.name, activity.probability) for activity in seq] for seq in final_sequences]
+
