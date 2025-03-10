@@ -5,7 +5,8 @@ class ConstraintTemplate:
         self.name = name
         self.supports_cardinality = supports_cardinality
         self.is_binary = is_binary
-
+        self.templ_str = name
+        
     def __repr__(self):
         return f"ConstraintTemplate({self.name})"
 
