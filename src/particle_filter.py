@@ -40,12 +40,7 @@ class ParticleFilter:
         MAX_PARTICLES = 10000
 
         for particle in self.particles:
-            if len(new_particles) >= MAX_PARTICLES:
-                print("Raggiunto il limite massimo di particelle. Interruzione della generazione.")
-                process_terminated = True
-                break
-
-            input_text = " ".join([act.name for act in particle])
+            input_text = "<SOS> " + " ".join([act.name for act in particle]) + " <EOS>"
             predicted_sequences = predict_next_log_with_constraints(
                 self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=5
             )
