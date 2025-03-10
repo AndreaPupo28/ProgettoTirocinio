@@ -28,7 +28,9 @@ class ParticleFilter:
             print(f"Particella iniziale: {[act.name for act in particle]}")
 
     def sense_environment(self, particles):
-        return constraints + self.constraint_manager.get_constraints()
+        current_constraints = constraints + self.constraint_manager.get_constraints()
+        print("Vincoli usati:", current_constraints)
+        return current_constraints
 
     def step(self):
         global process_terminated
