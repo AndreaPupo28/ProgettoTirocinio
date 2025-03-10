@@ -50,8 +50,8 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
         sequences = new_sequences
 
 
-    print("\nSequenze finali generate:")
-    for seq in final_sequences:
-        print(f"  {' → '.join(seq)}")
+    #print("\nSequenze finali generate:")
+    #for seq in final_sequences:
+    #    print(f"  {' → '.join(seq)}")
 
     return [[(activity.name, activity.probability) for activity in seq] for seq in final_sequences] #lista di tuple
