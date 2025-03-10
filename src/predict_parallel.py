@@ -12,13 +12,16 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
     MAX_SEQUENCES = 10000  # Limite massimo di sequenze attive
 
     while sequences and len(final_sequences) < MAX_SEQUENCES:
+        # Limita immediatamente il numero di sequenze attive
         if len(sequences) > MAX_SEQUENCES:
             print(f"Limite massimo di {MAX_SEQUENCES} sequenze attive raggiunto. Troncamento in corso...")
             sequences = sequences[:MAX_SEQUENCES]
 
         new_sequences = []
         print(f"\nElaborazione di {len(sequences)} sequenze attive...")
+
         for seq in sequences:
+            # Se abbiamo raggiunto il massimo, interrompi la generazione di nuove sequenze
             if len(new_sequences) >= MAX_SEQUENCES:
                 print("Raggiunto il limite di nuove sequenze. Interruzione dell'aggiunta di nuove particelle.")
                 break
@@ -56,6 +59,11 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
             else:
                 final_sequences.append(seq)
                 print(f"  Nessun candidato valido, sequenza finale: {' → '.join([act.name if isinstance(act, ActivityPrediction) else act for act in seq])}")
+
+        # Limita il numero di nuove sequenze prima della prossima iterazione
+        if len(new_sequences) > MAX_SEQUENCES:
+            print(f"Limite massimo di {MAX_SEQUENCES} nuove sequenze raggiunto. Troncamento delle sequenze extra...")
+            new_sequences = new_sequences[:MAX_SEQUENCES]
 
         sequences = new_sequences
 
