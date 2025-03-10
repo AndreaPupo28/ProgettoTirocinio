@@ -9,7 +9,7 @@ def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device,
     sequences = [[initial_log]]
     final_sequences = []
     
-    MAX_SEQUENCES = 1000  # Limite massimo di sequenze attive
+    MAX_SEQUENCES = 10000  # Limite massimo di sequenze attive
 
     while sequences and len(final_sequences) < MAX_SEQUENCES:
         new_sequences = []
