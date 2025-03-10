@@ -22,7 +22,7 @@ def generate_dynamic_constraints(csv_path):
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
     activity_counts = df["activity"].value_counts()
-    most_frequent_activities = activity_counts.index[:2].tolist()  # Prendiamo le 5 attività più comuni
+    most_frequent_activities = activity_counts.index[:5].tolist()  # Prendiamo le 5 attività più comuni
 
     first_activities = df.sort_values(by="timestamp").groupby("case").first()["activity"].value_counts()
     last_activities = df.sort_values(by="timestamp").groupby("case").last()["activity"].value_counts()
