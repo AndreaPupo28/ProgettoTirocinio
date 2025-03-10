@@ -47,7 +47,7 @@ class ParticleFilter:
 
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
-                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=2
+                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=5
             )
 
             if not predicted_sequences or not predicted_sequences[0]:
