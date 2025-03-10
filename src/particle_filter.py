@@ -37,7 +37,7 @@ class ParticleFilter:
         for particle in self.particles:
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
-                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=5
+                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=2
             )
             if not predicted_sequences or not predicted_sequences[0]:
                 print(f"Fine della traccia per la particella: {[act.name for act in particle]} - nessuna nuova attività da predire.")
