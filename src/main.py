@@ -121,7 +121,6 @@ if __name__ == "__main__":
     initial_activities = [initial_activity]
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
     pf.initialize_particles(initial_activities)
-    final_particles = pf.run(steps=2)
     final_particles = pf.run(steps=1)
 
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
