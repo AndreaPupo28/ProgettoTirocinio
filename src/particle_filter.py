@@ -6,7 +6,7 @@ from activity import ActivityPrediction
 from interactive_constraint_manager import InteractiveConstraintManager
 import random
 
-# Variabile globale per gestire la terminazione del processo
+# Variabile globale per segnalare la terminazione del processo
 process_terminated = False
 
 class ParticleFilter:
@@ -18,6 +18,17 @@ class ParticleFilter:
         self.num_particles = num_particles
         self.particles = []
         self.constraint_manager = InteractiveConstraintManager()
+
+    def initialize_particles(self, initial_activities):
+        self.particles = [[ActivityPrediction(activity, 1.0)] for activity in initial_activities]
+        print("\n--------------------------------------")
+        print("Inizio della generazione delle particelle iniziali")
+        print("--------------------------------------\n")
+        for particle in self.particles:
+            print(f"Particella iniziale: {[act.name for act in particle]}")
+
+    def sense_environment(self, particles):
+        return constraints + self.constraint_manager.get_constraints()
 
     def step(self):
         global process_terminated
@@ -31,6 +42,7 @@ class ParticleFilter:
         for particle in self.particles:
             if len(new_particles) >= MAX_PARTICLES:
                 print("Raggiunto il limite massimo di particelle. Interruzione della generazione.")
+                process_terminated = True
                 break
 
             input_text = " ".join([act.name for act in particle])
@@ -44,6 +56,7 @@ class ParticleFilter:
 
             for predicted_name, predicted_prob in predicted_sequences[0]:
                 if len(new_particles) >= MAX_PARTICLES:
+                    process_terminated = True
                     break
                 new_particle = particle + [ActivityPrediction(predicted_name, predicted_prob)]
                 current_constraints = self.sense_environment(new_particle)
@@ -58,10 +71,11 @@ class ParticleFilter:
         self.particles = new_particles
 
     def run(self, steps):
+        global process_terminated
         for step_num in range(steps):
             print(f"\n=== STEP {step_num + 1}/{steps} ===")
             self.step()
-            if not self.particles:
-                print("Nessuna particella rimanente. Fine del processo.")
+            if not self.particles or process_terminated:
+                print("Nessuna particella rimanente o processo terminato. Fine del processo.")
                 break
         return self.particles
