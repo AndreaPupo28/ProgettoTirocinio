@@ -2,7 +2,7 @@ import torch
 import os
 import pandas as pd
 from transformers import AutoTokenizer
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from data_loader import load_dataset
 from model import BertClassifier
 from train import train
@@ -14,7 +14,6 @@ from IPython.display import display, clear_output
 import json
 import time
 import numpy as np
-from torch.utils.data import Subset
 
 if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     # Widget per input dinamico dell'attività iniziale
     activity_widget = widgets.Text(
         value='validate request',
-        placeholder='Inserisci un\'attività',
+        placeholder="Inserisci un'attività",
         description='Attività:',
         disabled=False
     )
@@ -52,6 +51,7 @@ if __name__ == "__main__":
         with output:
             clear_output()
             constraints_data = constraints_widget.value.strip().lower()
+            
             if constraints_data == "n":
                 constraints = []
                 with open('/kaggle/working/vincoli.json', 'w') as f:
@@ -65,24 +65,30 @@ if __name__ == "__main__":
                     print("Vincoli salvati correttamente in 'vincoli.json'.")
                 except json.JSONDecodeError:
                     print("Errore: I vincoli non sono in un formato JSON valido.")
-            print(f"Attività iniziale scelta: {activity_widget.value}")
+            
+            # Aggiorna il valore dell'attività iniziale
+            global initial_activity
+            initial_activity = activity_widget.value
+            print(f"Attività iniziale scelta: {initial_activity}")
 
     save_button.on_click(on_save_button_clicked)
     display(activity_widget, constraints_widget, save_button, output)
 
-    initial_activity = activity_widget.value
     vincoli_path = '/kaggle/working/vincoli.json'
+    
     if os.path.exists(vincoli_path):
         with open(vincoli_path, 'r') as f:
             constraints = json.load(f)
     else:
         constraints = []
+    
     print(f"Attività iniziale scelta dall'utente: {initial_activity}")
     print(f"Vincoli caricati: {constraints}")
 
     if not os.path.exists("/kaggle/working/modello_addestrato3.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
+        
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
@@ -97,10 +103,12 @@ if __name__ == "__main__":
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "/kaggle/working/modello_addestrato3.pth")
+        
         print("\nModello addestrato e salvato con successo.")
         end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
+    
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato3.pth"))
@@ -126,6 +134,7 @@ if __name__ == "__main__":
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
-    #print("\nParticelle finali generate:")
-    #for particle in final_particles:
-    #    print([act.name for act in particle])
+    # Stampa delle particelle finali generate (opzionale)
+    # print("\nParticelle finali generate:")
+    # for particle in final_particles:
+    #     print([act.name for act in particle])
