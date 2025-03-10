@@ -47,11 +47,13 @@ if __name__ == "__main__":
     save_button = widgets.Button(description="Salva Vincoli", button_style='success')
     output = widgets.Output()
 
+
     def on_save_button_clicked(b):
+        global initial_activity  # Rendi la variabile globale
         with output:
             clear_output()
             constraints_data = constraints_widget.value.strip().lower()
-            
+
             if constraints_data == "n":
                 constraints = []
                 with open('/kaggle/working/vincoli.json', 'w') as f:
@@ -65,9 +67,8 @@ if __name__ == "__main__":
                     print("Vincoli salvati correttamente in 'vincoli.json'.")
                 except json.JSONDecodeError:
                     print("Errore: I vincoli non sono in un formato JSON valido.")
-            
+
             # Aggiorna il valore dell'attività iniziale
-            global initial_activity
             initial_activity = activity_widget.value
             print(f"Attività iniziale scelta: {initial_activity}")
 
@@ -75,20 +76,20 @@ if __name__ == "__main__":
     display(activity_widget, constraints_widget, save_button, output)
 
     vincoli_path = '/kaggle/working/vincoli.json'
-    
+
     if os.path.exists(vincoli_path):
         with open(vincoli_path, 'r') as f:
             constraints = json.load(f)
     else:
         constraints = []
-    
+
     print(f"Attività iniziale scelta dall'utente: {initial_activity}")
     print(f"Vincoli caricati: {constraints}")
 
     if not os.path.exists("/kaggle/working/modello_addestrato3.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
-        
+
         dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
@@ -103,12 +104,12 @@ if __name__ == "__main__":
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
         torch.save(model.state_dict(), "/kaggle/working/modello_addestrato3.pth")
-        
+
         print("\nModello addestrato e salvato con successo.")
         end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
-    
+
     else:
         print("\nCaricamento del modello già addestrato...")
         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato3.pth"))
@@ -117,7 +118,7 @@ if __name__ == "__main__":
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
 
-    reduced_test_size = int(0.10 * len(dataset)) 
+    reduced_test_size = int(0.10 * len(dataset))
     reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
     reduced_test_dataset = Subset(dataset, reduced_indices)
 
