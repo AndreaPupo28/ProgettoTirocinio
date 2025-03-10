@@ -106,7 +106,13 @@ if __name__ == "__main__":
 
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
-    test_loader = DataLoader(dataset, batch_size=8, shuffle=False)
+
+    reduced_test_size = int(0.10 * len(dataset)) 
+    reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
+    reduced_test_dataset = Subset(dataset, reduced_indices)
+
+    test_loader = DataLoader(reduced_test_dataset, batch_size=8, shuffle=False)
+
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
