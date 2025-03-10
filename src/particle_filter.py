@@ -6,7 +6,6 @@ from activity import ActivityPrediction
 from interactive_constraint_manager import InteractiveConstraintManager
 import random
 
-
 class ParticleFilter:
     def __init__(self, model, tokenizer, label_map, device, num_particles=50):
         self.model = model
@@ -34,7 +33,13 @@ class ParticleFilter:
 
         self.constraint_manager.request_constraints(current_length)
 
+        MAX_PARTICLES = 10000  # Imposta il limite massimo di particelle
+
         for particle in self.particles:
+            if len(new_particles) >= MAX_PARTICLES:
+                print("Raggiunto il limite massimo di particelle. Interruzione della generazione.")
+                break
+
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
                 self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=2
@@ -44,15 +49,13 @@ class ParticleFilter:
                 continue
 
             for predicted_name, predicted_prob in predicted_sequences[0]:
+                if len(new_particles) >= MAX_PARTICLES:
+                    break
                 new_particle = particle + [ActivityPrediction(predicted_name, predicted_prob)]
                 current_constraints = self.sense_environment(new_particle)
                 if check_constraints(" ".join([act.name for act in new_particle]), current_constraints, detailed=False, completed=True):
                     new_particles.append(new_particle)
                     print(f"Prossima attività predetta: {predicted_name} con probabilità {predicted_prob:.4f}\n")
-            MAX_PARTICLES = 10000  # Imposta il limite massimo di particelle
-            if len(new_particles) > MAX_PARTICLES:
-                print(f"Limite massimo di {MAX_PARTICLES} particelle raggiunto. Troncamento delle particelle extra...")
-                new_particles = random.sample(new_particles, MAX_PARTICLES)
 
         self.particles = new_particles
 
@@ -64,4 +67,3 @@ class ParticleFilter:
                 print("Nessuna particella rimanente. Fine del processo.")
                 break
         return self.particles
-
