@@ -78,7 +78,7 @@ if __name__ == "__main__":
     print(f"Attività iniziale scelta dall'utente: {initial_activity}")
     print(f"Vincoli caricati: {constraints}")
 
-    if not os.path.exists("/kaggle/working/modello_addestrato3.pth"):
+    if not os.path.exists("/kaggle/working/modello_addestrato-sepsis.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
         dataset = load_dataset(dataset_path, tokenizer)
@@ -94,14 +94,14 @@ if __name__ == "__main__":
 
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
-        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato3.pth")
+        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato-sepsis.pth")
         print("\nModello addestrato e salvato con successo.")
         end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
     else:
         print("\nCaricamento del modello già addestrato...")
-        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato3.pth"))
+        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato-sepsis.pth"))
         model.eval()
 
     print("\nValutazione del modello sul test set...")
