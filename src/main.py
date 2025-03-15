@@ -119,9 +119,8 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    initial_activities = [initial_activity]
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
-    pf.initialize_particles(initial_activities)
+    pf.initialize_particles(initial_activity)
     final_particles = pf.run(steps=2)
 
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
