@@ -4,7 +4,7 @@ from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
 
-def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k=5): # consideriamo i 5 log più probabili
+def predict_parallel_sequences(model, tokenizer, initial_log, label_map, device, k): # consideriamo i 5 log più probabili
     model.eval()
     sequences = [[initial_log]]
     final_sequences = []

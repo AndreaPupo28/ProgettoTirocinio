@@ -119,7 +119,7 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
     pf.initialize_particles(initial_activity)
     final_particles = pf.run(steps=2)
 
