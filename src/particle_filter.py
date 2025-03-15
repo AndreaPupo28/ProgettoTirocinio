@@ -15,11 +15,9 @@ class ParticleFilter:
         self.particles = []
         self.constraint_manager = InteractiveConstraintManager()
 
-    def initialize_particles(self, initial_activities):
-        self.particles = [[ActivityPrediction(activity, 1.0)] for activity in initial_activities]
-        print(f"\n[INFO] Generazione di {len(self.particles)} particelle iniziali:")
-        for particle in self.particles:
-            print(f"  - Particella iniziale: {[act.name for act in particle]}")
+    def initialize_particles(self, initial_activity):
+        self.particles = [[ActivityPrediction(initial_activity, 1.0)]]  
+        print(f"  - Particella iniziale: {initial_activity}")
 
     def sense_environment(self, particles):
         return constraints + self.constraint_manager.get_constraints()
