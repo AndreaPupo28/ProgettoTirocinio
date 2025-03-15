@@ -123,7 +123,7 @@ if __name__ == "__main__":
     pf.initialize_particles(initial_activity)
     final_particles = pf.run(steps=4)
 
-    similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
+    similarity_score = evaluate_log_similarity(final_particles, dataset.label_map)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     print("\nParticelle finali generate:")
