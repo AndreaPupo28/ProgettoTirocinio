@@ -35,7 +35,11 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
 
     print(f"\n[INFO] Predizioni per la sequenza '{input_text}':")
 
-    for idx in sorted_indices[:k]:  # Seleziona solo i top-k candidati
+    valid_candidates = []
+    for idx in sorted_indices:
+        if len(valid_candidates) >= k:
+            break
+        # Seleziona solo i top-k candidati
         candidate_log = list(label_map.keys())[idx]
         candidate_prob = probs[idx]
         new_sequence = input_text + " " + candidate_log
