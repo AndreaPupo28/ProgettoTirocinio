@@ -1,4 +1,3 @@
-import torch
 from predict import predict_next_log_with_constraints
 from constraints_checker import check_constraints
 from constraints import constraints
@@ -43,10 +42,16 @@ class ParticleFilter:
 
             for predicted_name, predicted_prob in predicted_sequences[0]:
                 new_particle = particle + [ActivityPrediction(predicted_name, predicted_prob)]
+
+                # Verifica se la sequenza sta entrando in un ciclo ripetitivo
+                sequence_names = [act.name for act in new_particle]
+                if len(sequence_names) != len(set(sequence_names)):  # Se ci sono duplicati
+                    print(f"Possibile ciclo rilevato in {sequence_names}, scartato.")
+                    continue
+
                 current_constraints = self.sense_environment(new_particle)
-                if check_constraints(" ".join([act.name for act in new_particle]), current_constraints, detailed=False, completed=True):
+                if check_constraints(" ".join(sequence_names), current_constraints, detailed=False, completed=True):
                     new_particles.append(new_particle)
-                    print(f"Prossima attività predetta: {predicted_name} con probabilità {predicted_prob:.4f}\n")
 
         self.particles = new_particles
 
