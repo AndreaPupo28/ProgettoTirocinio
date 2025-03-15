@@ -27,34 +27,33 @@ class ParticleFilter:
         print(f"  - Particella iniziale impostata: {initial_activity}")
 
     def step(self, step_num):
-        """ Avanza di uno step, generando SOLO le nuove particelle previste dallo step precedente """
+        """
+        Avanza di uno step:
+        Per ogni particella esistente, vengono richieste le previsioni e si generano
+        nuove particelle aggiungendo ESATTAMENTE k previsioni (o meno se non disponibili).
+        """
         print(f"\n=== STEP {step_num} ===")
-        print(f"[INFO] Step {step_num}, particelle attive: {len(self.particles)}")
+        num_particles_in = len(self.particles)
+        print(f"[INFO] Step {step_num}, particelle attive: {num_particles_in}")
 
         new_particles = []
-
         for particle in self.particles:
-            # Generiamo solo le k attività più probabili per questa sequenza
             predicted_activities = predict_next_log_with_constraints(
                 self.model, self.tokenizer, particle, self.label_map, self.device, num_candidates=self.k
             )
 
-            if not predicted_activities:
-                continue
+            # Se per una particella non sono disponibili k candidati, viene generato un avviso
+            if len(predicted_activities) < self.k:
+                print(
+                    f"[WARNING] Particle {particle} restituisce solo {len(predicted_activities)} predizioni (minimo richiesto: {self.k}).")
 
-            # Limitiamo la crescita a esattamente `k^step`
+            # Prendiamo esattamente self.k candidati (se disponibili)
             for activity in predicted_activities[:self.k]:
-                if len(new_particles) >= self.k ** step_num:
-                    break  # STOP appena raggiunto il limite esatto
+                new_particles.append(particle + [activity])
 
-                new_particle = particle + [activity]
-                new_particles.append(new_particle)
-
-            if len(new_particles) >= self.k ** step_num:
-                break  # Stop generale per evitare generazione extra
-
-        self.particles = new_particles  # Aggiorniamo la lista di particelle
-        print(f"[INFO] Particelle generate al termine dello step {step_num}: {len(self.particles)}")
+        expected = num_particles_in * self.k
+        print(f"[INFO] Particelle generate al termine dello step {step_num}: {len(new_particles)} (attese: {expected})")
+        self.particles = new_particles
 
     def run(self, steps):
         """ Esegue il filtro per un numero di step definito """
