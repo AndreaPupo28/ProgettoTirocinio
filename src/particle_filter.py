@@ -4,6 +4,12 @@ from constraints import constraints
 from activity import ActivityPrediction
 from interactive_constraint_manager import InteractiveConstraintManager
 
+from predict import predict_next_log_with_constraints
+from constraints_checker import check_constraints
+from constraints import constraints
+from activity import ActivityPrediction
+from interactive_constraint_manager import InteractiveConstraintManager
+
 class ParticleFilter:
     def __init__(self, model, tokenizer, label_map, device, k=3, max_particles=100):
         self.model = model
@@ -27,22 +33,18 @@ class ParticleFilter:
 
         new_particles = []
         for particle in self.particles:
-            input_text = " ".join([act.name for act in particle])
-            predicted_sequences = predict_next_log_with_constraints(
-                self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=self.k
+            predicted_activities = predict_next_log_with_constraints(
+                self.model, self.tokenizer, particle, self.label_map, self.device, num_candidates=self.k
             )
 
-            if not predicted_sequences or not predicted_sequences[0]:
+            if not predicted_activities:
                 continue
 
-            # Prendiamo al massimo `k` attività più probabili
-            valid_candidates = sorted(predicted_sequences[0], key=lambda x: x[1], reverse=True)[:self.k]
-
-            for predicted_name, predicted_prob in valid_candidates:
-                new_particle = particle + [ActivityPrediction(predicted_name, predicted_prob)]
+            for activity in predicted_activities:
+                new_particle = particle + [activity]
                 new_particles.append(new_particle)
 
-        self.particles = new_particles  # Sostituiamo le particelle con le nuove per il prossimo step
+        self.particles = new_particles  # Aggiorniamo la lista di particelle
         print(f"[INFO] Particelle generate al termine dello step {step_num}: {len(self.particles)}")
 
     def run(self, steps):
@@ -52,9 +54,10 @@ class ParticleFilter:
                 print("[INFO] Nessuna particella rimanente. Fine del processo.")
                 break
 
-            self.step(step_num)  # Ora ogni step elabora solo le particelle esistenti e non genera tutte le sequenze in una volta
+            self.step(step_num)  # Ora ogni step elabora solo le particelle esistenti
 
         return self.particles
+
 
 
     def sense_environment(self, particles):
