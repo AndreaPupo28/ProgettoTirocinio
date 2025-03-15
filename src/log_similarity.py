@@ -25,7 +25,7 @@ def evaluate_log_similarity(model, tokenizer, dataset, label_map, device, num_ca
             model, tokenizer, input_text, label_map, device, num_candidates
         )
         if predicted_sequences and predicted_sequences[0]:
-            generated_traces.append([pred[0] for pred in predicted_sequences[0]])
+            generated_traces.append([pred.name for pred in predicted_sequences[0]])
 
     generated_log_matrix = generate_log_matrix(generated_traces, label_map)
 
