@@ -28,36 +28,37 @@ class ParticleFilter:
         new_particles = []
         current_length = len(self.particles[0]) if self.particles else 0
         self.constraint_manager.request_constraints(current_length)
+        
+        print(f"[INFO] Step attuale: {current_length}, particelle attive: {len(self.particles)}")
 
         for particle in self.particles:
+            if len(new_particles) >= self.max_particles:
+                break  # Evitiamo la crescita esponenziale
+            
             input_text = " ".join([act.name for act in particle])
             predicted_sequences = predict_next_log_with_constraints(
                 self.model, self.tokenizer, input_text, self.label_map, self.device, num_candidates=3
             )  # Ridotto a 3 candidati
             
             if not predicted_sequences or not predicted_sequences[0]:
-                print(f"[INFO] Nessuna nuova attività per {[act.name for act in particle]}, fine della traccia.")
                 continue
 
-            for predicted_name, predicted_prob in predicted_sequences[0]:
+            for predicted_name, predicted_prob in sorted(predicted_sequences[0], key=lambda x: x[1], reverse=True)[:2]:
+                if len(new_particles) >= self.max_particles:
+                    break
+                
                 new_particle = particle + [ActivityPrediction(predicted_name, predicted_prob)]
                 sequence_names = [act.name for act in new_particle]
                 
                 # Controllo per evitare cicli ripetitivi negli ultimi 5 passi
                 if len(sequence_names) > 5 and len(sequence_names[-5:]) != len(set(sequence_names[-5:])):
-                    print(f"[WARNING] Ciclo rilevato in {sequence_names}, scartato.")
                     continue
                 
                 current_constraints = self.sense_environment(new_particle)
                 if check_constraints(" ".join(sequence_names), current_constraints, detailed=False, completed=True):
                     new_particles.append(new_particle)
-                    print(f"[INFO] Nuova attività predetta: {predicted_name} (Prob: {predicted_prob:.4f})")
-
-        # Limitare il numero di particelle attive
-        if len(new_particles) > self.max_particles:
-            new_particles = sorted(new_particles, key=lambda p: sum(act.probability for act in p), reverse=True)[:self.max_particles]
-            print(f"[INFO] Limite massimo di particelle raggiunto ({self.max_particles}), selezionate le migliori.")
-
+        
+        print(f"[INFO] Nuove particelle generate: {len(new_particles)}")
         self.particles = new_particles
 
     def run(self, steps):
