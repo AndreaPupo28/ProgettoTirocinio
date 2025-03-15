@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
     pf.initialize_particles(initial_activity)
-    final_particles = pf.run(steps=3)
+    final_particles = pf.run(steps=4)
 
     similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
