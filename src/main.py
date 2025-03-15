@@ -21,7 +21,7 @@ if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/sepsis.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
 
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     print(f"Attività iniziale scelta dall'utente: {initial_activity}")
     print(f"Vincoli caricati: {constraints}")
 
-    if not os.path.exists("/kaggle/working/modello_addestrato-sepsis.pth"):
+    if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
         dataset = load_dataset(dataset_path, tokenizer)
@@ -97,14 +97,14 @@ if __name__ == "__main__":
 
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
-        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato-sepsis.pth")
+        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato.pth")
         print("\nModello addestrato e salvato con successo.")
         end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
     else:
         print("\nCaricamento del modello già addestrato...")
-        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato-sepsis.pth"))
+        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
         model.eval()
 
     print("\nValutazione del modello sul test set...")
