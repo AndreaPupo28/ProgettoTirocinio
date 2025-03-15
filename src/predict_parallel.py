@@ -4,15 +4,21 @@ from constraints_checker import check_constraints
 from constraints import constraints
 from activity import ActivityPrediction
 
-
 def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, device, k):
     """
     Genera le prossime attività più probabili per una sequenza corrente.
-    Questa funzione ora esegue SOLO UNA previsione per step, senza generare subito tutte le sequenze.
+    Assicura che la sequenza sia sempre composta da oggetti ActivityPrediction.
     """
     model.eval()
 
+    # Se `current_sequence` è una stringa, la convertiamo in una lista di un solo elemento ActivityPrediction
+    if isinstance(current_sequence, str):
+        current_sequence = [ActivityPrediction(current_sequence, 1.0)]
+    elif isinstance(current_sequence, list) and all(isinstance(act, str) for act in current_sequence):
+        current_sequence = [ActivityPrediction(act, 1.0) for act in current_sequence]
+
     input_text = " ".join([act.name for act in current_sequence])
+
     with torch.no_grad():
         inputs = tokenizer(
             input_text,
