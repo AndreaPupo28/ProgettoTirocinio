@@ -1,13 +1,13 @@
 import torch
 import numpy as np
 from constraints_checker import check_constraints
-from constraints import constraints
 from activity import ActivityPrediction
 
-def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, device, k):
+def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, device, k, constraint_manager):
     """
     Genera le prossime attività più probabili per una sequenza corrente.
     Assicura che la sequenza sia sempre composta da oggetti ActivityPrediction.
+    Integra la gestione dei vincoli.
     """
     model.eval()
 
@@ -18,6 +18,10 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
         current_sequence = [ActivityPrediction(act, 1.0) for act in current_sequence]
 
     input_text = " ".join([act.name for act in current_sequence])
+    current_length = len(current_sequence)
+
+    # Richiedi i vincoli basati sulla lunghezza della sequenza
+    constraint_manager.request_constraints(current_length)
 
     with torch.no_grad():
         inputs = tokenizer(
@@ -35,7 +39,6 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
 
     print(f"\n[INFO] Predizioni per la sequenza '{input_text}':")
 
-    valid_candidates = []
     for idx in sorted_indices:
         if len(valid_candidates) >= k:
             break
@@ -43,9 +46,14 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
         candidate_log = list(label_map.keys())[idx]
         candidate_prob = probs[idx]
         new_sequence = input_text + " " + candidate_log
+
         print(f"  - Candidato: {candidate_log}, Probabilità: {candidate_prob:.4f}")
 
-        if check_constraints(new_sequence, constraints, detailed=False, completed=True):
+        # Ottieni i vincoli attuali per la nuova sequenza
+        current_constraints = constraint_manager.sense_environment(current_sequence + [ActivityPrediction(candidate_log, candidate_prob)])
+
+        # Controlla se i vincoli sono rispettati
+        if check_constraints(new_sequence, current_constraints, detailed=False, completed=True):
             valid_candidates.append(ActivityPrediction(candidate_log, candidate_prob))
 
     return valid_candidates  # Ritorna solo le nuove attività possibili

@@ -11,7 +11,6 @@ class ConstraintTemplate:
 
 ResponseTemplate = ConstraintTemplate("Response", is_binary=True)
 PrecedenceTemplate = ConstraintTemplate("Precedence", is_binary=True)
-ExistenceTemplate = ConstraintTemplate("Existence", supports_cardinality=True)
 
 def generate_dynamic_constraints(csv_path):
     df = pd.read_csv(csv_path, low_memory=False)
