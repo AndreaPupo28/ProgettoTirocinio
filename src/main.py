@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # Widget per input dinamico dell'attività iniziale
     activity_widget = widgets.Text(
-        value='OLO messaging active',
+        value='send letter in progress',
         placeholder='Inserisci un\'attività',
         description='Attività:',
         disabled=False

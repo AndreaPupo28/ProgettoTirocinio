@@ -38,9 +38,9 @@ class ParticleFilter:
 
         for particle in self.particles:
             predicted_activities = predict_next_log_with_constraints(
-                self.model, self.tokenizer, particle, self.label_map, self.device, num_candidates=self.k
+                self.model, self.tokenizer, particle, self.label_map, self.device, num_candidates=self.k,
+                constraint_manager=self.constraint_manager
             )
-
             # Se per una particella non sono disponibili k candidati, viene generato un avviso
             if len(predicted_activities) < self.k:
                 print(
