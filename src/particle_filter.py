@@ -32,9 +32,10 @@ class ParticleFilter:
 
         new_particles = []
         current_length = len(self.particles[0]) if self.particles else 0
+        print(f"\n Le tracce attuali hanno lunghezza {current_length}.")
 
-        # Richiedere i vincoli per la lunghezza attuale delle tracce
-        self.constraint_manager.request_constraints(current_length)
+        if step_num == 1:
+            self.constraint_manager.request_constraints(current_length)
 
         for particle in self.particles:
             predicted_activities = predict_next_log_with_constraints(
@@ -61,8 +62,7 @@ class ParticleFilter:
                         completed=True
                 ):
                     new_particles.append(new_particle)
-                    print(
-                        f"Prossima attività predetta: {predicted_activity.name} con probabilità {predicted_activity.probability:.4f}")
+                    #print(f"Prossima attività predetta: {predicted_activity.name} con probabilità {predicted_activity.probability:.4f}")
 
         expected = num_particles_in * self.k
         print(f"[INFO] Particelle generate al termine dello step {step_num}: {len(new_particles)} (attese: {expected})")

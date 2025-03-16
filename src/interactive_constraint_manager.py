@@ -22,7 +22,7 @@ class InteractiveConstraintManager:
         self.user_constraints = []
 
     def request_constraints(self, current_length):
-        print(f"\n[RICHIESTA VINCOLI] Le tracce attuali hanno lunghezza {current_length}.")
+        #print(f"\n[RICHIESTA VINCOLI] Le tracce attuali hanno lunghezza {current_length}.")
         add_constraints = input("Vuoi aggiungere nuovi vincoli? (s/n): ").lower()
 
         if add_constraints == "s":

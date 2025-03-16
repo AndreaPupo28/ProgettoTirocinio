@@ -20,9 +20,6 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
     input_text = " ".join([act.name for act in current_sequence])
     current_length = len(current_sequence)
 
-    # Richiedi i vincoli basati sulla lunghezza della sequenza
-    constraint_manager.request_constraints(current_length)
-
     with torch.no_grad():
         inputs = tokenizer(
             input_text,
