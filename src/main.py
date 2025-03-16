@@ -107,28 +107,28 @@
 #         model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth"))
 #         model.eval()
 #
-#     print("\nValutazione del modello sul test set...")
-#     dataset = load_dataset(dataset_path, tokenizer)
-#
-#     reduced_test_size = int(0.50 * len(dataset))
-#     reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
-#     reduced_test_dataset = Subset(dataset, reduced_indices)
-#
-#     test_loader = DataLoader(reduced_test_dataset, batch_size=8, shuffle=False)
-#
-#     criterion = torch.nn.CrossEntropyLoss()
-#     evaluate_model(model, test_loader, criterion, device)
-#
-#     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
-#     pf.initialize_particles(initial_activity)
-#     final_particles = pf.run(steps=4)
-#
-#     similarity_score = evaluate_log_similarity(final_particles, dataset.label_map)
-#     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
-#
-#     print("\nParticelle finali generate:")
-#     for particle in final_particles:
-#         print([act.name for act in particle])
+    # print("\nValutazione del modello sul test set...")
+    # dataset = load_dataset(dataset_path, tokenizer)
+    #
+    # reduced_test_size = int(0.50 * len(dataset))
+    # reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
+    # reduced_test_dataset = Subset(dataset, reduced_indices)
+    #
+    # test_loader = DataLoader(reduced_test_dataset, batch_size=8, shuffle=False)
+    #
+    # criterion = torch.nn.CrossEntropyLoss()
+    # evaluate_model(model, test_loader, criterion, device)
+    #
+    # pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
+    # pf.initialize_particles(initial_activity)
+    # final_particles = pf.run(steps=4)
+    #
+    # similarity_score = evaluate_log_similarity(final_particles, dataset.label_map)
+    # print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
+    #
+    # print("\nParticelle finali generate:")
+    # for particle in final_particles:
+    #     print([act.name for act in particle])
 
 import torch
 import os
@@ -156,6 +156,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv(dataset_path, low_memory=False)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
+
+    initial_activity = "phase application received"
 
     if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
         print("\nAvvio dell'addestramento...")
@@ -186,7 +188,7 @@ if __name__ == "__main__":
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
 
-    reduced_test_size = int(0.10 * len(dataset))
+    reduced_test_size = int(0.50 * len(dataset))
     reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
     reduced_test_dataset = Subset(dataset, reduced_indices)
 
@@ -195,15 +197,13 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     evaluate_model(model, test_loader, criterion, device)
 
-    initial_activity = next(iter(set(df["activity"])), None)
-    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, num_particles=50)
+    pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
     pf.initialize_particles(initial_activity)
-    final_particles = pf.run(steps=2) # step: numero max di iterazioni per il PF per estendere le particelle
+    final_particles = pf.run(steps=4)
 
-    similarity_score = evaluate_log_similarity(model, tokenizer, dataset, dataset.label_map, device)
+    similarity_score = evaluate_log_similarity(final_particles, dataset.label_map)
     print(f"CFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     print("\nParticelle finali generate:")
     for particle in final_particles:
         print([act.name for act in particle])
-
