@@ -110,7 +110,7 @@ if __name__ == "__main__":
     print("\nValutazione del modello sul test set...")
     dataset = load_dataset(dataset_path, tokenizer)
 
-    reduced_test_size = int(0.10 * len(dataset)) 
+    reduced_test_size = int(0.50 * len(dataset))
     reduced_indices = np.random.choice(len(dataset), reduced_test_size, replace=False)
     reduced_test_dataset = Subset(dataset, reduced_indices)
 

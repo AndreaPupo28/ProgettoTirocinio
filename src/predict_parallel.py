@@ -50,7 +50,7 @@ def predict_parallel_sequences(model, tokenizer, current_sequence, label_map, de
         print(f"  - Candidato: {candidate_log}, Probabilità: {candidate_prob:.4f}")
 
         # Ottieni i vincoli attuali per la nuova sequenza
-        current_constraints = constraint_manager.sense_environment(current_sequence + [ActivityPrediction(candidate_log, candidate_prob)])
+        current_constraints = constraint_manager.get_constraints()
 
         # Controlla se i vincoli sono rispettati
         if check_constraints(new_sequence, current_constraints, detailed=False, completed=True):
