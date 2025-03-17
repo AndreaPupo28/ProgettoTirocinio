@@ -16,6 +16,8 @@ class LogDataset(Dataset):
         self.data = self.data.sort_values(by=["case", "timestamp"])  # Ordina per case e tempo
         grouped = self.data.groupby("case")["activity"].apply(list) # Dizionario
 
+        self.traces = grouped.tolist()
+
         sequences = []
         for case in grouped:
             for i in range(1, len(case)):
