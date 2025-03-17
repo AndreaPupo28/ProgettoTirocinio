@@ -149,7 +149,7 @@ if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
 
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
@@ -157,9 +157,9 @@ if __name__ == "__main__":
     df = pd.read_csv(dataset_path, low_memory=False)
     model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
 
-    initial_activity = "phase application received"
+    initial_activity = "Closed"
 
-    if not os.path.exists("/kaggle/working/modello_addestrato.pth"):
+    if not os.path.exists("/kaggle/working/modello_addestrato-helpdesk.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
         dataset = load_dataset(dataset_path, tokenizer)
@@ -175,14 +175,14 @@ if __name__ == "__main__":
 
         model = train(model, train_loader, optimizer, 10, criterion, device)
         os.makedirs("models", exist_ok=True)
-        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato.pth")
+        torch.save(model.state_dict(), "/kaggle/working/modello_addestrato-helpdesk.pth")
         print("\nModello addestrato e salvato con successo.")
         end_time = time.time()
         training_time = end_time - start_time
         print(f"Tempo totale di addestramento: {training_time:.2f} secondi")
     else:
         print("\nCaricamento del modello già addestrato...")
-        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato.pth", map_location=device))
+        model.load_state_dict(torch.load("/kaggle/working/modello_addestrato-helpdesk.pth", map_location=device))
         model.eval()
 
     print("\nValutazione del modello sul test set...")
