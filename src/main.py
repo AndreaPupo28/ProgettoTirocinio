@@ -150,7 +150,7 @@ from predict import predict_next_log_with_constraints
 # Import necessari per il discovery
 from pm4py.objects.conversion.log import converter as log_converter
 from Declare4Py.D4PyEventLog import D4PyEventLog
-from DeclareMiner import DeclareMiner
+from src.declare.DeclareMiner import DeclareMiner
 
 
 def generate_trace(model, tokenizer, initial_activity, label_map, device, constraint_manager, max_steps=10):
