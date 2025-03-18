@@ -5,7 +5,7 @@ from abc import ABC
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from Declare4Py.ProcessMiningTasks.AbstractDiscovery import AbstractDiscovery
 from Declare4Py.ProcessModels.DeclareModel import DeclareModel, DeclareModelTemplate
-from old.src.support.declare.Checkers import ConstraintChecker
+from declare.Checkers import ConstraintChecker
 
 
 
