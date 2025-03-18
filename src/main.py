@@ -171,7 +171,7 @@ def generate_trace(model, tokenizer, initial_activity, label_map, device, constr
         # Usa la funzione di predizione per ottenere i candidati (qui prendiamo k=3)
         candidates = predict_next_log_with_constraints(
             model, tokenizer, trace, label_map, device,
-            num_candidates=3, constraint_manager=constraint_manager
+            num_candidates=5, constraint_manager=constraint_manager
         )
 
         if not candidates:
@@ -271,8 +271,8 @@ if __name__ == "__main__":
     evaluate_model(model, test_loader, criterion, device)
 
     # DISCOVERY: utilizza il nuovo codice per scoprire i vincoli
-    discovered_constraints = discover_constraints(dataset_path, 0.8, 0.9)
-    print("\nVincoli scoperti (supporto 80%-90%):")
+    discovered_constraints = discover_constraints(dataset_path, 0.7, 0.9)
+    print("\nVincoli scoperti (supporto 70%-90%):")
     for constraint in discovered_constraints:
         print(constraint)
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     constraint_manager.user_constraints.extend(discovered_constraints)
 
     # Generazione della traccia con l'LM (senza Particle Filter)
-    initial_activity = "Closed"  # Imposta l'attività iniziale desiderata
+    initial_activity = "Take in charge ticket"  # Imposta l'attività iniziale desiderata
     generated_trace = generate_trace(model, tokenizer, initial_activity, dataset.label_map, device, constraint_manager,
                                      max_steps=10)
 
@@ -290,4 +290,4 @@ if __name__ == "__main__":
 
     # Calcolo della similarità CFld: confronta la traccia generata con le tracce originali del dataset
     similarity_score = evaluate_log_similarity([generated_trace], dataset.label_map, dataset.traces)
-    print(f"\nCFld Similarity (traccia generata vs tracce originali): {similarity_score:.4f}")
+    print(f"\nCFld Similarity: {similarity_score:.4f}")
