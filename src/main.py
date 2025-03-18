@@ -287,7 +287,7 @@ if __name__ == "__main__":
     constraint_manager.user_constraints.extend(discovered_constraints)
 
     # Generazione della traccia con l'LM (senza Particle Filter)
-    initial_activity = "Take in charge ticket"  # Imposta l'attività iniziale desiderata
+    initial_activity = "grounds for refusal"  # Imposta l'attività iniziale desiderata
     generated_trace = generate_trace(model, tokenizer, initial_activity, dataset.label_map, device, constraint_manager,
                                      max_steps=10)
 
