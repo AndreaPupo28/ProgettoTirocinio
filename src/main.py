@@ -231,7 +231,7 @@ if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
 
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     model = BertClassifier(model_name, output_size=dataset.num_classes).to(device)
 
     # Addestramento del modello
-    model_path = "/kaggle/working/modello_addestrato-helpdesk.pth"
+    model_path = "/kaggle/working/modello_addestrato-BPIC15_1.pth"
     if not os.path.exists(model_path):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
