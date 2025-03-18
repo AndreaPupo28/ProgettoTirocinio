@@ -129,6 +129,10 @@
     # print("\nParticelle finali generate:")
     # for particle in final_particles:
     #     print([act.name for act in particle])
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 import torch
 import os
 import time
