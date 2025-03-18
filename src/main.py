@@ -237,7 +237,7 @@ if __name__ == "__main__":
     model_name = "prajjwal1/bert-medium"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/sepsis.csv"
 
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     model = BertClassifier(model_name, output_size=dataset.num_classes).to(device)
 
     # Addestramento del modello
-    model_path = "/kaggle/working/modello_addestrato-BPIC15_1.pth"
+    model_path = "/kaggle/working/modello_addestrato-sepsis.pth"
     if not os.path.exists(model_path):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     constraint_manager.user_constraints.extend(discovered_constraints)
 
     # Generazione della traccia con l'LM (senza Particle Filter)
-    initial_activity = "grounds for refusal"  # Imposta l'attività iniziale desiderata
+    initial_activity = "CRP"  # Imposta l'attività iniziale desiderata
     generated_trace = generate_trace(model, tokenizer, initial_activity, dataset.label_map, device, constraint_manager,
                                      max_steps=10)
 
