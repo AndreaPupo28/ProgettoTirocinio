@@ -129,7 +129,6 @@
     # print("\nParticelle finali generate:")
     # for particle in final_particles:
     #     print([act.name for act in particle])
-
 import torch
 import os
 import pandas as pd
@@ -154,15 +153,16 @@ if __name__ == "__main__":
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
-    df = pd.read_csv(dataset_path, low_memory=False)
-    model = BertClassifier(model_name, output_size=len(set(df["activity"]))).to(device)
+    # Carica il dataset usando il data loader modificato, che aggiunge "END OF SEQUENCE"
+    dataset = load_dataset(dataset_path, tokenizer)
+    # Inizializza il modello usando il numero di classi definito dal dataset aggiornato
+    model = BertClassifier(model_name, output_size=dataset.num_classes).to(device)
 
     initial_activity = "Closed"
 
     if not os.path.exists("/kaggle/working/modello_addestrato-helpdesk.pth"):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
-        dataset = load_dataset(dataset_path, tokenizer)
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -186,6 +186,7 @@ if __name__ == "__main__":
         model.eval()
 
     print("\nValutazione del modello sul test set...")
+    # Ricarica il dataset per la valutazione, che include anche "END OF SEQUENCE"
     dataset = load_dataset(dataset_path, tokenizer)
 
     reduced_test_size = int(0.50 * len(dataset))
