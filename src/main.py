@@ -155,6 +155,12 @@ from predict import predict_next_log_with_constraints
 from pm4py.objects.conversion.log import converter as log_converter
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from declare.DeclareMiner import DeclareMiner
+import logging
+
+# Disattiva i messaggi di DEBUG di Numba e CUDA
+logging.getLogger("numba").setLevel(logging.WARNING)
+logging.getLogger("numba.cuda.cudadrv.driver").setLevel(logging.WARNING)
+
 
 
 def generate_trace(model, tokenizer, initial_activity, label_map, device, constraint_manager, max_steps=10):
