@@ -13,6 +13,7 @@ class ParticleFilter:
         self.k = k  # Numero massimo di attività successive per ogni particella
         self.max_particles = max_particles  # Limite massimo di particelle attive
         self.particles = []
+        self.finished_particles = []  # Nuovo: particelle che hanno terminato (con "END OF SEQUENCE")
         self.constraint_manager = InteractiveConstraintManager()
 
     def initialize_particles(self, initial_activity):
@@ -22,8 +23,7 @@ class ParticleFilter:
 
     def step(self, step_num):
         """
-        Avanza di uno step:
-        Per ogni particella esistente, vengono richieste le previsioni e si generano
+        Avanza di uno step: per ogni particella esistente, vengono richieste le previsioni e si generano
         nuove particelle aggiungendo ESATTAMENTE k previsioni (o meno se non disponibili).
         """
         print(f"\n=== STEP {step_num} ===")
@@ -39,30 +39,29 @@ class ParticleFilter:
 
         for particle in self.particles:
             predicted_activities = predict_next_log_with_constraints(
-                self.model, self.tokenizer, particle, self.label_map, self.device, num_candidates=self.k,
-                constraint_manager=self.constraint_manager
+                self.model, self.tokenizer, particle, self.label_map, self.device,
+                num_candidates=self.k, constraint_manager=self.constraint_manager
             )
-            # Se per una particella non sono disponibili k candidati, viene generato un avviso
-            if len(predicted_activities) < self.k:
-                print(
-                    f"[WARNING] Particle {particle} restituisce solo {len(predicted_activities)} predizioni (minimo richiesto: {self.k}).")
 
-            # Prendiamo esattamente self.k candidati (se disponibili)
+            if len(predicted_activities) < self.k:
+                print(f"[WARNING] Particle {particle} restituisce solo {len(predicted_activities)} predizioni (minimo richiesto: {self.k}).")
+
             for predicted_activity in predicted_activities[:self.k]:
                 new_particle = particle + [predicted_activity]
-
-                # Ottieni i vincoli attuali
+                # Ottieni i vincoli attuali per la particella
                 current_constraints = self.sense_environment(new_particle)
-
-                # Controlla se i vincoli sono rispettati
                 if check_constraints(
                         " ".join([act.name for act in new_particle]),
                         current_constraints,
                         detailed=False,
                         completed=True
                 ):
-                    new_particles.append(new_particle)
-                    #print(f"Prossima attività predetta: {predicted_activity.name} con probabilità {predicted_activity.probability:.4f}")
+                    if predicted_activity.name == "END OF SEQUENCE":
+                        # La particella ha terminato la generazione
+                        self.finished_particles.append(new_particle)
+                        print(f"[INFO] Particella conclusa: {[act.name for act in new_particle]}")
+                    else:
+                        new_particles.append(new_particle)
 
         expected = num_particles_in * self.k
         print(f"[INFO] Particelle generate al termine dello step {step_num}: {len(new_particles)} (attese: {expected})")
@@ -74,10 +73,11 @@ class ParticleFilter:
             if not self.particles:
                 print("[INFO] Nessuna particella rimanente. Fine del processo.")
                 break
-
             self.step(step_num)
-
-        return self.particles
+        # Restituisce l'insieme complessivo: particelle concluse + quelle ancora in elaborazione
+        all_particles = self.finished_particles + self.particles
+        return all_particles
 
     def sense_environment(self, particles):
         return constraints + self.constraint_manager.get_constraints()
+

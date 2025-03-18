@@ -5,32 +5,41 @@ from activity import ActivityPrediction
 
 
 class LogDataset(Dataset):
-    def __init__(self, file_path, tokenizer, max_length=128): # Costruttore
+    def __init__(self, file_path, tokenizer, max_length=128):
+        # Caricamento del dataset
         self.data = pd.read_csv(file_path, low_memory=False)
         print(f"Dataset caricato: {len(self.data)} righe trovate.")
 
         self.tokenizer = tokenizer
-        self.max_length = max_length # lunghezza massima della sequenza dopo la tokenizzazione
+        self.max_length = max_length  # lunghezza massima della sequenza dopo la tokenizzazione
 
-        # Creare un dataset basato su sequenze incrementali per ogni case
-        self.data = self.data.sort_values(by=["case", "timestamp"])  # Ordina per case e tempo
-        grouped = self.data.groupby("case")["activity"].apply(list) # Dizionario
+        # Ordina il dataset per case e timestamp
+        self.data = self.data.sort_values(by=["case", "timestamp"])
+        grouped = self.data.groupby("case")["activity"].apply(list)  # Raggruppa le attività per case
 
+        # Conserva le tracce originali per eventuali valutazioni successive
         self.traces = grouped.tolist()
 
         sequences = []
-        for case in grouped:
-            for i in range(1, len(case)):
-                sequences.append((case[:i], ActivityPrediction(case[i], 1.0)))  # Probabilità 1.0 perché è dato dal dataset. X = [A1, A2, ..., Ai], Y = Ai+1
+        # Genera sequenze incrementali per ogni traccia
+        for trace in grouped:
+            for i in range(1, len(trace)):
+                sequences.append((trace[:i], ActivityPrediction(trace[i], 1.0)))
+            # Aggiunge la sequenza finale che termina con "END OF SEQUENCE"
+            sequences.append((trace, ActivityPrediction("END OF SEQUENCE", 1.0)))
 
         self.data = sequences
 
-        # estrae tutte le attività uniche dal dataset, includendo sia le sequenze di input che le attività predette, rimuove i duplicati e le ordina alfabeticamente.
-        unique_activities = sorted(set(a.name if isinstance(a, ActivityPrediction) else a for seq in self.data for a in seq[0] + [seq[1]]))
-        self.label_map = {label: idx for idx, label in enumerate(unique_activities)} # Crea un dizionario (nomeAttività-indice)
+        # Estrae tutte le attività uniche dal dataset, incluse quelle in input e quelle predette,
+        # in modo da creare il dizionario label_map
+        unique_activities = sorted(
+            set(
+                a.name if isinstance(a, ActivityPrediction) else a
+                for seq in self.data for a in seq[0] + [seq[1]]
+            )
+        )
+        self.label_map = {label: idx for idx, label in enumerate(unique_activities)}
         self.num_classes = len(self.label_map)
-
-        #print(f"Classi trovate: {self.label_map}")
 
     def __len__(self):
         return len(self.data)
