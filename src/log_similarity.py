@@ -2,6 +2,21 @@ import numpy as np
 from pyxdameraulevenshtein import normalized_damerau_levenshtein_distance
 from scipy.optimize import linear_sum_assignment
 from tqdm import tqdm
+from joblib import Parallel, delayed
+
+def _compute_distance_for_original(original_trace, generated_log):
+    return [normalized_damerau_levenshtein_distance(original_trace, gen_trace)
+            for gen_trace in generated_log]
+
+def _compute_pair_distances_parallel(original_log, generated_log, n_jobs=-1):
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(_compute_distance_for_original)(orig, generated_log)
+        for orig in original_log
+    )
+    # Appiattisce la lista: prima tutte le distanze per la prima traccia, poi per la seconda, etc.
+    distances = [d for sublist in results for d in sublist]
+    return distances
+
 
 def generate_log_matrix(logs, label_map):
     """
@@ -61,8 +76,12 @@ def _pair_traces(normalized_distances, original_log, generated_log):
     return cost_matrix, row_ind, col_ind
 
 
-def get_log_similarity(original_log, generated_log):
-    normalized_distances = _compute_pair_distances(original_log, generated_log)
+def get_log_similarity(original_log, generated_log, parallel=True, n_jobs=-1):
+    if parallel:
+        normalized_distances = _compute_pair_distances_parallel(original_log, generated_log, n_jobs)
+    else:
+        normalized_distances = _compute_pair_distances(original_log, generated_log)  # versione già esistente
     cost_matrix, row_ind, col_ind = _pair_traces(normalized_distances, original_log, generated_log)
     cfld_metric = _compute_cfld(row_ind, col_ind, cost_matrix)
     return 1 - cfld_metric
+
