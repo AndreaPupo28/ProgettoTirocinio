@@ -76,7 +76,7 @@ def _pair_traces(normalized_distances, original_log, generated_log):
     return cost_matrix, row_ind, col_ind
 
 
-def get_log_similarity(original_log, generated_log, parallel=True, n_jobs=-1):
+def get_log_similarity(original_log, generated_log, parallel=False, n_jobs=-1):
     if parallel:
         normalized_distances = _compute_pair_distances_parallel(original_log, generated_log, n_jobs)
     else:
