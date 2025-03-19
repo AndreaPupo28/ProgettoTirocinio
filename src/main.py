@@ -163,6 +163,7 @@ def discover_constraints(csv_file, min_support, max_support, consider_vacuity=Tr
     # Se non sono presenti le colonne attese, proviamo a rinominarle
     if not {"Case ID", "Activity", "Start Timestamp"}.issubset(df.columns):
         df = df.rename(columns={"case": "Case ID", "activity": "Activity", "timestamp": "Start Timestamp"})
+    df["Start Timestamp"] = pd.to_datetime(df["Start Timestamp"])
     df = pm4py.format_dataframe(df, case_id="Case ID", activity_key="Activity", timestamp_key="Start Timestamp")
 
     event_log = D4PyEventLog(case_name="case:concept:name")
