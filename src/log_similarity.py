@@ -1,7 +1,7 @@
 import numpy as np
 from pyxdameraulevenshtein import normalized_damerau_levenshtein_distance
 from scipy.optimize import linear_sum_assignment
-
+from tqdm import tqdm
 
 def generate_log_matrix(logs, label_map):
     """
@@ -41,7 +41,7 @@ def evaluate_log_similarity(final_particles, label_map, original_traces):
 
 def _compute_pair_distances(original_log, generated_log):
     distances = []
-    for i, original_trace in enumerate(original_log):
+    for i, original_trace in tqdm(enumerate(original_log), total=len(original_log), desc="Calcolo distanze"):
         for j, generated_trace in enumerate(generated_log):
             distance = normalized_damerau_levenshtein_distance(original_trace, generated_trace)
             distances.append(distance)
