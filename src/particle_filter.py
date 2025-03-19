@@ -34,8 +34,8 @@ class ParticleFilter:
         current_length = len(self.particles[0]) if self.particles else 0
         print(f"\n Le tracce attuali hanno lunghezza {current_length}.")
 
-        if step_num == 1:
-            self.constraint_manager.request_constraints(current_length)
+        #if step_num == 1:
+        #    self.constraint_manager.request_constraints(current_length)
 
         for particle in self.particles:
             predicted_activities = predict_next_log_with_constraints(

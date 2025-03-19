@@ -129,6 +129,7 @@
     # print("\nParticelle finali generate:")
     # for particle in final_particles:
     #     print([act.name for act in particle])
+
 import os
 import time
 import torch
@@ -150,6 +151,10 @@ import pm4py
 from pm4py.objects.conversion.log import converter as log_converter
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from declare.DeclareMiner import DeclareMiner
+from ipywidgets import widgets
+from IPython.display import display, clear_output
+import json
+
 
 
 def discover_constraints(csv_file, min_support, max_support, consider_vacuity=True, itemsets_support=0.9,
@@ -203,6 +208,8 @@ def main():
     dataset = load_dataset(dataset_path, tokenizer)
     # Inizializza il modello in base al numero di classi definite dal dataset aggiornato
     model = BertClassifier(model_name, output_size=dataset.num_classes).to(device)
+
+
 
     # Imposta l'attività iniziale per la generazione
     initial_activity = "register deadline"
