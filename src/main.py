@@ -196,7 +196,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
 
     # Specifica il percorso del dataset (modifica il path in base alle tue esigenze)
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/BPIC15_1.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
@@ -212,10 +212,10 @@ def main():
 
 
     # Imposta l'attività iniziale per la generazione
-    initial_activity = "register deadline"
+    initial_activity = "Assign seriousness"
 
     # Addestramento del modello (se il file addestrato non esiste)
-    model_path = "/kaggle/working/modello_addestrato-BPIC15_1.pth"
+    model_path = "/kaggle/working/modello_addestrato-helpdesk.pth"
     if not os.path.exists(model_path):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
