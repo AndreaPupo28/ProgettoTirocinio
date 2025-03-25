@@ -263,8 +263,8 @@ def main():
 
     # Calcola la similarità CFld confrontando le tracce generate con quelle originali
     similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
-    print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
-    print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
+    #print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
+    #print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     print("\nParticelle finali generate:")
     for particle in final_particles:
