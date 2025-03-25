@@ -278,7 +278,7 @@ def main():
 
     for particle in final_particles:
         # Costruisci una stringa che rappresenta la traccia (ad es. una sequenza di attività)
-        trace_str = " ".join([act.name for act in particle])
+        trace_str = "<SOS> " + " ".join([act.name for act in particle]) + " <EOS>"
         # Esegui il check in modalità dettagliata: restituisce (lista_di_stati, numero_di_vincoli_soddisfatti)
         results, satisfied_count = check_constraints(trace_str, all_constraints, detailed=True, completed=True)
         total_constraints = len(all_constraints)
