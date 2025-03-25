@@ -254,10 +254,13 @@ def main():
     pf = ParticleFilter(model, tokenizer, dataset.label_map, device, k=3)
     pf.constraint_manager.user_constraints.extend(discovered_constraints)
 
-    # Inizializza le particelle con l'attività iniziale
     pf.initialize_particles(initial_activity)
-    # Esegui il Particle Filter per un certo numero di step (ad es. 4)
+
+    start_inference = time.time()
     final_particles = pf.run(steps=4)
+    end_inference = time.time()
+
+    print(f"\n Tempo di inferenza (generazione tracce): {end_inference - start_inference:.2f} secondi.")
 
     # Calcola la similarità CFld confrontando le tracce generate con quelle originali
     similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
