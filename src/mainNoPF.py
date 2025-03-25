@@ -142,8 +142,8 @@ if __name__ == "__main__":
     print([act.name for act in generated_trace])
 
     similarity_score = evaluate_log_similarity([generated_trace], dataset.label_map, dataset.traces)
-    print(f"\nCFls Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
-    print(f"\nCFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
+    print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
+    print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     all_constraints = constraints + constraint_manager.get_constraints()
 
