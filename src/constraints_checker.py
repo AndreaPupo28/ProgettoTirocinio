@@ -61,15 +61,21 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     if constraint['template'].is_binary:
         rules["correlation"] = constraint['condition'][1]
 
-    # Se la condizione temporale è None, sostituiscila con "True"
+    # Gestione della condizione temporale:
     time_cond = constraint['condition'][-1]
-    if time_cond is None:
-        time_cond = "True"
+    import re
+    # Se la condizione temporale non è una stringa oppure non produce almeno 3 parti separate da virgola,
+    # sostituiscila con un valore predefinito che rispetti il formato (ad es. "0,0,s")
+    if (time_cond is None) or (not isinstance(time_cond, str)):
+        time_cond = "0,0,s"
+    else:
+        parts = re.split(r'\s*,\s*', time_cond.strip())
+        if len(parts) < 3:
+            time_cond = "0,0,s"
     rules["time"] = time_cond
 
-    complete_result = (MyTemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
+    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
                        .get_template(constraint['template'])()).state
-
     if detailed:
         return complete_result
     else:
