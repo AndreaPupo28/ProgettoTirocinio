@@ -28,6 +28,11 @@ from constraints import constraints
 logging.getLogger("numba").setLevel(logging.WARNING)
 logging.getLogger("numba.cuda.cudadrv.driver").setLevel(logging.WARNING)
 
+def compute_constraints_percentage(particle, constraints):
+    trace_str = "<SOS> " + " ".join(act.name for act in particle) + " <EOS>"
+    _, satisfied_count = check_constraints(trace_str, constraints, detailed=True, completed=True)
+    total = len(constraints)
+    return (satisfied_count / total) * 100 if total > 0 else 0
 
 
 def generate_trace(model, tokenizer, initial_activity, label_map, device, constraint_manager, max_steps=10):
@@ -140,6 +145,11 @@ if __name__ == "__main__":
 
     print("\nTraccia generata:")
     print([act.name for act in generated_trace])
+
+    # Calcolo della percentuale di vincoli soddisfatti per la traccia generata
+    all_constraints = constraint_manager.get_constraints()
+    percent_satisfied = compute_constraints_percentage(generated_trace, all_constraints)
+    print(f"\nPercentuale di vincoli soddisfatti per la traccia generata: {percent_satisfied:.2f}%")
 
     similarity_score = evaluate_log_similarity([generated_trace], dataset.label_map, dataset.traces)
     print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
