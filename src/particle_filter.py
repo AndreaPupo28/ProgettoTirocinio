@@ -79,5 +79,7 @@ class ParticleFilter:
         return all_particles
 
     def sense_environment(self, particles):
-        return constraints + self.constraint_manager.get_constraints()
+        return self.constraint_manager.get_constraints()
+        #return constraints + self.constraint_manager.get_constraints()
+
 

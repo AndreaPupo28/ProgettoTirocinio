@@ -254,8 +254,8 @@ def main():
     evaluate_model(model, test_loader, criterion, device)
 
     # Discovery dei vincoli tramite DeclareMiner (supporto compreso tra il 70% e il 90%)
-    discovered_constraints = discover_constraints(dataset_path, min_support=0.7, max_support=0.9)
-    print("\nVincoli scoperti (supporto 70%-90%):")
+    discovered_constraints = discover_constraints(dataset_path, min_support=0.8, max_support=0.9)
+    print("\nVincoli scoperti (supporto 80%-90%):")
     for constraint in discovered_constraints:
         print(constraint)
 
