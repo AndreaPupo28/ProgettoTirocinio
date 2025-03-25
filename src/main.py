@@ -266,32 +266,6 @@ def main():
     #print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
     #print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
-    print("\nParticelle finali generate:")
-    for particle in final_particles:
-        print([act.name for act in particle])
-
-    all_constraints = constraints + pf.constraint_manager.get_constraints()
-
-    total_percentage = 0  # Per sommare la percentuale per ciascuna traccia
-
-    print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
-
-    for particle in final_particles:
-        # Costruisci la stringa della traccia includendo i delimitatori <SOS> e <EOS>
-        trace_str = "<SOS> " + " ".join([act.name for act in particle]) + " <EOS>"
-
-        # La funzione check_constraints in modalità 'detailed' restituisce (lista_stati, num_soddisfatti)
-        results, satisfied_count = check_constraints(trace_str, all_constraints, detailed=True, completed=True)
-
-        total_constraints = len(all_constraints)
-        percent_satisfied = (satisfied_count / total_constraints) * 100 if total_constraints > 0 else 0
-        total_percentage += percent_satisfied
-        print(f"Traccia: {trace_str} -> {percent_satisfied:.2f}% di vincoli soddisfatti")
-
-    # Calcola la percentuale media di vincoli soddisfatti
-    average_percentage = total_percentage / len(final_particles) if final_particles else 0
-    print(f"\nPercentuale media di vincoli soddisfatti per tutte le tracce: {average_percentage:.2f}%")
-
 if __name__ == "__main__":
     main()
 

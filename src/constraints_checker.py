@@ -35,14 +35,13 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     concept_name = []
     timestamp = []
     for token in sequence.split(" "):
-        if token != "":
+        if not token == "":
             case_concept_name.append(0)
             concept_name.append(token.replace("_", " "))
             timestamp.append('2024-07-17 09:00:00')
 
     log_data = {'case:concept:name': case_concept_name, 'concept:name': concept_name, 'time:timestamp': timestamp}
-    data_frame = pm4py.format_dataframe(pandas.DataFrame(log_data), case_id='case:concept:name',
-                                        activity_key='concept:name')
+    data_frame = pm4py.format_dataframe(pandas.DataFrame(log_data), case_id='case:concept:name', activity_key='concept:name')
     pm4py_event_log = log_converter.apply(data_frame)
     # Converting pm4py Event Log as Declare Event Log
     event_log = D4PyEventLog(case_name="case:concept:name")
@@ -50,34 +49,21 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     event_log.log_length = len(event_log.log)
     event_log.timestamp_key = event_log.log._properties['pm4py:param:timestamp_key']
     event_log.activity_key = event_log.log._properties['pm4py:param:activity_key']
-
     # Building constraint for checker
     consider_vacuity = False
     rules = {"vacuous_satisfaction": consider_vacuity, "activation": constraint['condition'][0]}
-
     if constraint['template'].supports_cardinality:
         rules["n"] = constraint['n']
 
     if constraint['template'].is_binary:
         rules["correlation"] = constraint['condition'][1]
 
-    # Gestione della condizione temporale:
-    time_cond = constraint['condition'][-1]
-    import re
-    # Se la condizione temporale non è una stringa oppure non produce almeno 3 parti separate da virgola,
-    # sostituiscila con un valore predefinito che rispetti il formato (ad es. "0,0,s")
-    if (time_cond is None) or (not isinstance(time_cond, str)):
-        time_cond = "0,0,s"
-    else:
-        parts = re.split(r'\s*,\s*', time_cond.strip())
-        if len(parts) < 3:
-            time_cond = "0,0,s"
-    rules["time"] = time_cond
-
-    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
-                       .get_template(constraint['template'])()).state
+    rules["time"] = constraint['condition'][-1]
+    # Checking constraint
+    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules).get_template(constraint['template'])()).state
     if detailed:
         return complete_result
+
     else:
         return complete_result == TraceState.SATISFIED
 
@@ -114,43 +100,11 @@ def check_constraints(sequence, constraints, detailed, completed):
         return True
 
 def get_string_between(start_delim, end_delim, text):
-    """
-    Estrae la sottostringa tra due delimitatori.
-    """
     import re
     pattern = f"{re.escape(start_delim)}(.*?){re.escape(end_delim)}"
     match = re.search(pattern, text)
     return match.group(1) if match else ""
 
 def _extract_activities(sequence):
-    """
-    Estrae le attività da una sequenza di log. Supponiamo che siano separate da spazi.
-    """
     return sequence.split()
-
-
-# Aggiungi questo import all'inizio del file, insieme agli altri
-from Declare4Py.Utils.Declare.Checkers import TemplateConstraintChecker as BaseTemplateConstraintChecker
-
-class MyTemplateConstraintChecker(BaseTemplateConstraintChecker):
-    def get_template(self, template):
-        # Prova ad usare l'attributo 'templ_str', se presente
-        if hasattr(template, "templ_str"):
-            name = template.templ_str
-        # Altrimenti, prova 'template_str'
-        elif hasattr(template, "template_str"):
-            name = template.template_str
-        # Oppure, prova 'name'
-        elif hasattr(template, "name"):
-            name = template.name
-        else:
-            name = str(template)
-        template_checker_name = f"mp{name.replace(' ', '')}"
-        try:
-            return getattr(self, template_checker_name)
-        except AttributeError:
-            print(f"The checker function for template {name} has not been implemented yet.")
-            # In alternativa, restituisci una funzione "vuota" per evitare errori
-            return lambda: type("DummyCheckerResult", (), {"state": None})()
-
 
