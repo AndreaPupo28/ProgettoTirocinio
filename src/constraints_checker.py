@@ -67,8 +67,9 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
         time_cond = "True"
     rules["time"] = time_cond
 
-    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
+    complete_result = (MyTemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
                        .get_template(constraint['template'])()).state
+
     if detailed:
         return complete_result
     else:
