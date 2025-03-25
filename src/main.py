@@ -262,7 +262,7 @@ def main():
     print(f"\n Tempo di inferenza (generazione tracce): {end_inference - start_inference:.2f} secondi.")
 
     # Calcola la similarità CFld confrontando le tracce generate con quelle originali
-    similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
+    #similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
     #print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
     #print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
