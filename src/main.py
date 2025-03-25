@@ -270,27 +270,6 @@ def main():
     for particle in final_particles:
         print([act.name for act in particle])
 
-    all_constraints = constraints + pf.constraint_manager.get_constraints()
-
-    #print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
-
-    total_percentage = 0  # Variabile per sommare le percentuali di ogni traccia
-
-    for particle in final_particles:
-        # Costruisci una stringa che rappresenta la traccia (ad es. una sequenza di attività)
-        trace_str = "<SOS> " + " ".join([act.name for act in particle]) + " <EOS>"
-        # Esegui il check in modalità dettagliata: restituisce (lista_di_stati, numero_di_vincoli_soddisfatti)
-        results, satisfied_count = check_constraints(trace_str, all_constraints, detailed=True, completed=True)
-        total_constraints = len(all_constraints)
-        percent_satisfied = (satisfied_count / total_constraints) * 100 if total_constraints > 0 else 0
-        total_percentage += percent_satisfied
-        #print(f"Traccia: {trace_str} -> {percent_satisfied:.2f}% di vincoli soddisfatti")
-
-    # Calcola la percentuale media per tutte le tracce
-    average_percentage = total_percentage / len(final_particles) if final_particles else 0
-    print(f"\nPercentuale media di vincoli soddisfatti per tutte le tracce: {average_percentage:.2f}%")
-
-
 if __name__ == "__main__":
     main()
 
