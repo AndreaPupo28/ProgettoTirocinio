@@ -154,6 +154,16 @@ from declare.DeclareMiner import DeclareMiner
 from constraints_checker import check_constraints
 from constraints import constraints
 
+def compute_constraints_percentage(particle, constraints):
+    # Costruisci la stringa della traccia con i delimitatori richiesti
+    trace_str = "<SOS> " + " ".join(act.name for act in particle) + " <EOS>"
+    # La funzione check_constraints in modalità detailed restituisce (lista_di_stati, num_soddisfatti)
+    _, satisfied_count = check_constraints(trace_str, constraints, detailed=True, completed=True)
+    total = len(constraints)
+    if total > 0:
+        return (satisfied_count / total) * 100
+    return 0
+
 
 
 def discover_constraints(csv_file, min_support, max_support, consider_vacuity=True, itemsets_support=0.9,
@@ -265,6 +275,18 @@ def main():
     #similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
     #print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
     #print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
+
+    all_constraints = pf.constraint_manager.get_constraints()
+    total_percentage = 0
+    print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
+    for particle in final_particles:
+        perc = compute_constraints_percentage(particle, all_constraints)
+        total_percentage += perc
+        print(f"Traccia: {' '.join(act.name for act in particle)} -> {perc:.2f}% di vincoli soddisfatti")
+
+    average_percentage = total_percentage / len(final_particles) if final_particles else 0
+    print(f"\nPercentuale media di vincoli soddisfatti per tutte le tracce: {average_percentage:.2f}%")
+
 
 if __name__ == "__main__":
     main()
