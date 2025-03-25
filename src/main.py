@@ -205,7 +205,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(model_name, truncation_side="left")
 
     # Specifica il percorso del dataset (modifica il path in base alle tue esigenze)
-    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/helpdesk.csv"
+    dataset_path = "/kaggle/working/ProgettoTirocinio/dataset/sepsis.csv"
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Errore: Il file CSV '{dataset_path}' non esiste!")
 
@@ -222,7 +222,7 @@ def main():
     initial_activity = "ER Registration"
 
     # Addestramento del modello (se il file addestrato non esiste)
-    model_path = "/kaggle/working/modello_addestrato-helpdesk.pth"
+    model_path = "/kaggle/working/modello_addestrato-sepsis.pth"
     if not os.path.exists(model_path):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
@@ -272,17 +272,17 @@ def main():
     print(f"\n Tempo di inferenza (generazione tracce): {end_inference - start_inference:.2f} secondi.")
 
     # Calcola la similarità CFld confrontando le tracce generate con quelle originali
-    #similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
-    #print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
-    #print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
+    similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
+    print(f"\nCFld Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
+    print(f"\nCFls Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     all_constraints = pf.constraint_manager.get_constraints()
     total_percentage = 0
-    print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
+    #print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
     for particle in final_particles:
         perc = compute_constraints_percentage(particle, all_constraints)
         total_percentage += perc
-        print(f"Traccia: {' '.join(act.name for act in particle)} -> {perc:.2f}% di vincoli soddisfatti")
+        #print(f"Traccia: {' '.join(act.name for act in particle)} -> {perc:.2f}% di vincoli soddisfatti")
 
     average_percentage = total_percentage / len(final_particles) if final_particles else 0
     print(f"\nPercentuale media di vincoli soddisfatti per tutte le tracce: {average_percentage:.2f}%")
