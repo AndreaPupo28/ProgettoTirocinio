@@ -21,6 +21,8 @@ from pm4py.objects.conversion.log import converter as log_converter
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from declare.DeclareMiner import DeclareMiner
 import logging
+from constraints_checker import check_constraints
+from constraints import constraints
 
 # Disattiva i messaggi di DEBUG di Numba e CUDA
 logging.getLogger("numba").setLevel(logging.WARNING)
@@ -140,4 +142,18 @@ if __name__ == "__main__":
     print([act.name for act in generated_trace])
 
     similarity_score = evaluate_log_similarity([generated_trace], dataset.label_map, dataset.traces)
-    print(f"\nCFld Similarity: {similarity_score:.4f}")
+    print(f"\nCFls Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
+    print(f"\nCFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
+
+    all_constraints = constraints + constraint_manager.get_constraints()
+
+    # Costruisci una stringa che rappresenta la traccia generata
+    trace_str = " ".join([act.name for act in generated_trace])
+
+    # Verifica i vincoli in modalità dettagliata: restituisce (lista_di_stati, numero_di_vincoli_soddisfatti)
+    results, satisfied_count = check_constraints(trace_str, all_constraints, detailed=True, completed=True)
+    total_constraints = len(all_constraints)
+    percent_satisfied = (satisfied_count / total_constraints) * 100 if total_constraints > 0 else 0
+
+    print(f"\nPercentuale di vincoli soddisfatti per la traccia generata: {percent_satisfied:.2f}%")
+

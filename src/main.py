@@ -151,9 +151,8 @@ import pm4py
 from pm4py.objects.conversion.log import converter as log_converter
 from Declare4Py.D4PyEventLog import D4PyEventLog
 from declare.DeclareMiner import DeclareMiner
-from ipywidgets import widgets
-from IPython.display import display, clear_output
-import json
+from constraints_checker import check_constraints
+from constraints import constraints
 
 
 
@@ -246,7 +245,7 @@ def main():
 
     # Discovery dei vincoli tramite DeclareMiner (supporto compreso tra il 70% e il 90%)
     discovered_constraints = discover_constraints(dataset_path, min_support=0.7, max_support=0.9)
-    print("\nVincoli scoperti (supporto 80%-90%):")
+    print("\nVincoli scoperti (supporto 70%-90%):")
     for constraint in discovered_constraints:
         print(constraint)
 
@@ -264,11 +263,32 @@ def main():
 
     # Calcola la similarità CFld confrontando le tracce generate con quelle originali
     similarity_score = evaluate_log_similarity(final_particles, dataset.label_map, dataset.traces)
+    print(f"\nCFls Similarity (dopo generazione tracce): {1 - similarity_score:.4f}")
     print(f"\nCFld Similarity (dopo generazione tracce): {similarity_score:.4f}")
 
     print("\nParticelle finali generate:")
     for particle in final_particles:
         print([act.name for act in particle])
+
+    all_constraints = constraints + pf.constraint_manager.get_constraints()
+
+    #print("\nPercentuale di vincoli soddisfatti per ciascuna traccia generata:")
+
+    total_percentage = 0  # Variabile per sommare le percentuali di ogni traccia
+
+    for particle in final_particles:
+        # Costruisci una stringa che rappresenta la traccia (ad es. una sequenza di attività)
+        trace_str = " ".join([act.name for act in particle])
+        # Esegui il check in modalità dettagliata: restituisce (lista_di_stati, numero_di_vincoli_soddisfatti)
+        results, satisfied_count = check_constraints(trace_str, all_constraints, detailed=True, completed=True)
+        total_constraints = len(all_constraints)
+        percent_satisfied = (satisfied_count / total_constraints) * 100 if total_constraints > 0 else 0
+        total_percentage += percent_satisfied
+        #print(f"Traccia: {trace_str} -> {percent_satisfied:.2f}% di vincoli soddisfatti")
+
+    # Calcola la percentuale media per tutte le tracce
+    average_percentage = total_percentage / len(final_particles) if final_particles else 0
+    print(f"\nPercentuale media di vincoli soddisfatti per tutte le tracce: {average_percentage:.2f}%")
 
 
 if __name__ == "__main__":
