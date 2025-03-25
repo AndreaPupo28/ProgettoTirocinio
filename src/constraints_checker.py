@@ -40,21 +40,18 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
             concept_name.append(token.replace("_", " "))
             timestamp.append('2024-07-17 09:00:00')
 
-    log_data = {
-        'case:concept:name': case_concept_name,
-        'concept:name': concept_name,
-        'time:timestamp': timestamp
-    }
+    log_data = {'case:concept:name': case_concept_name, 'concept:name': concept_name, 'time:timestamp': timestamp}
     data_frame = pm4py.format_dataframe(pandas.DataFrame(log_data), case_id='case:concept:name',
                                         activity_key='concept:name')
     pm4py_event_log = log_converter.apply(data_frame)
+    # Converting pm4py Event Log as Declare Event Log
     event_log = D4PyEventLog(case_name="case:concept:name")
     event_log.log = pm4py.convert_to_event_log(pm4py_event_log)
     event_log.log_length = len(event_log.log)
     event_log.timestamp_key = event_log.log._properties['pm4py:param:timestamp_key']
     event_log.activity_key = event_log.log._properties['pm4py:param:activity_key']
 
-    # Costruisci le regole per il controllo del vincolo
+    # Building constraint for checker
     consider_vacuity = False
     rules = {"vacuous_satisfaction": consider_vacuity, "activation": constraint['condition'][0]}
 
@@ -64,16 +61,14 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
     if constraint['template'].is_binary:
         rules["correlation"] = constraint['condition'][1]
 
-    # Se la condizione temporale è vuota, impostala a "True"
+    # Se la condizione temporale è None, sostituiscila con "True"
     time_cond = constraint['condition'][-1]
-    if time_cond.strip() == "":
+    if time_cond is None:
         time_cond = "True"
     rules["time"] = time_cond
 
-    complete_result = (MyTemplateConstraintChecker(
-        event_log.get_log()[0], completed, constraint['activities'], rules
-    ).get_template(constraint['template'])()).state
-
+    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules)
+                       .get_template(constraint['template'])()).state
     if detailed:
         return complete_result
     else:
