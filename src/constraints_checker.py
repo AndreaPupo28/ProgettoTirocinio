@@ -60,7 +60,9 @@ def satisfies(sequence, constraint, detailed=False, completed=True):
 
     rules["time"] = constraint['condition'][-1]
     # Checking constraint
-    complete_result = (TemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules).get_template(constraint['template'])()).state
+    complete_result = (
+        MyTemplateConstraintChecker(event_log.get_log()[0], completed, constraint['activities'], rules).get_template(
+            constraint['template'])()).state
     if detailed:
         return complete_result
 
@@ -113,4 +115,30 @@ def _extract_activities(sequence):
     Estrae le attività da una sequenza di log. Supponiamo che siano separate da spazi.
     """
     return sequence.split()
+
+
+# Aggiungi questo import all'inizio del file, insieme agli altri
+from Declare4Py.Utils.Declare.Checkers import TemplateConstraintChecker as BaseTemplateConstraintChecker
+
+class MyTemplateConstraintChecker(BaseTemplateConstraintChecker):
+    def get_template(self, template):
+        # Prova ad usare l'attributo 'templ_str', se presente
+        if hasattr(template, "templ_str"):
+            name = template.templ_str
+        # Altrimenti, prova 'template_str'
+        elif hasattr(template, "template_str"):
+            name = template.template_str
+        # Oppure, prova 'name'
+        elif hasattr(template, "name"):
+            name = template.name
+        else:
+            name = str(template)
+        template_checker_name = f"mp{name.replace(' ', '')}"
+        try:
+            return getattr(self, template_checker_name)
+        except AttributeError:
+            print(f"The checker function for template {name} has not been implemented yet.")
+            # In alternativa, restituisci una funzione "vuota" per evitare errori
+            return lambda: type("DummyCheckerResult", (), {"state": None})()
+
 
