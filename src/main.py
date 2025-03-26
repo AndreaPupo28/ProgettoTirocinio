@@ -234,7 +234,7 @@ def main():
         test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
         criterion = torch.nn.CrossEntropyLoss()
-        model = train(model, train_loader, optimizer, epochs=10, criterion=criterion, device=device)
+        model = train(model, train_loader, test_loader, optimizer, epochs=10, criterion=criterion, device=device)
         torch.save(model.state_dict(), model_path)
         end_time = time.time()
         print(f"\nModello addestrato in {end_time - start_time:.2f} secondi.")
@@ -251,7 +251,7 @@ def main():
     reduced_test_dataset = Subset(dataset, reduced_indices)
     test_loader = DataLoader(reduced_test_dataset, batch_size=8, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
-    evaluate_model(model, test_loader, criterion, device, 10)
+    evaluate_model(model, test_loader, criterion, device)
 
     # Discovery dei vincoli tramite DeclareMiner (supporto compreso tra il 70% e il 90%)
     discovered_constraints = discover_constraints(dataset_path, min_support=0.8, max_support=0.9)
