@@ -251,7 +251,7 @@ def main():
     reduced_test_dataset = Subset(dataset, reduced_indices)
     test_loader = DataLoader(reduced_test_dataset, batch_size=8, shuffle=False)
     criterion = torch.nn.CrossEntropyLoss()
-    evaluate_model(model, test_loader, criterion, device)
+    evaluate_model(model, test_loader, criterion, device, 10)
 
     # Discovery dei vincoli tramite DeclareMiner (supporto compreso tra il 70% e il 90%)
     discovered_constraints = discover_constraints(dataset_path, min_support=0.8, max_support=0.9)
