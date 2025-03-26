@@ -222,7 +222,7 @@ def main():
     initial_activity = "ER Registration"
 
     # Addestramento del modello (se il file addestrato non esiste)
-    model_path = "/kaggle/working/modello_addestrato-BPIC15_1.pth"
+    model_path = "/kaggle/working/modello_addestrato-BPIC15.pth"
     if not os.path.exists(model_path):
         print("\nAvvio dell'addestramento...")
         start_time = time.time()
