@@ -111,7 +111,7 @@ if __name__ == "__main__":
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
         criterion = torch.nn.CrossEntropyLoss()
 
-        model = train(model, train_loader, optimizer, epochs=10, criterion=criterion, device=device)
+        model = train(model, train_loader, test_loader, optimizer, epochs=10, criterion=criterion, device=device)
         torch.save(model.state_dict(), model_path)
         end_time = time.time()
         print(f"Modello addestrato in {end_time - start_time:.2f} secondi.")
